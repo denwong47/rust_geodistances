@@ -8,7 +8,7 @@ fn main() -> Result<(), ()> {
 
     let array_inputs = data::structs::IOCoordinateLists::from_pickle(&stdin_input);
 
-    let array_outputs = data::structs::IOResultArray::new(array_inputs.shape());
+    let array_outputs = data::structs::IOResultArray::like_input(&array_inputs);
 
     input_output::stdout::display_bytes(&array_inputs.to_pickle());
 
