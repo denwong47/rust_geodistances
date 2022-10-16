@@ -4,6 +4,7 @@
 ///
 
 use serde::{Deserialize, Serialize, Serializer};
+use serde::ser::SerializeTuple;
 // use serde_json::{Result, Value};
 // use serde_with::serde_as;
 use serde_pickle;
@@ -11,14 +12,43 @@ use serde_pickle;
 use crate::input_output::pickle;
 
 // #[serde_as]
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LatLng(f64, f64);
+#[derive(Debug, Deserialize)]
+pub struct LatLng{
+    lat: f64,
+    lng: f64,
+}
+impl Serialize for LatLng {
+    /// If we don't specify, this thing is going to serialize into a dict.
+    /// Numpy is not going to be happy - lets make it a tuple.
+    fn serialize<S>(
+        &self,
+        serializer: S
+    ) -> Result<S::Ok, S::Error>
+    where S: Serializer {
+        let mut tup = serializer.serialize_tuple(2)?;
+        tup.serialize_element(&self.lat)?;
+        tup.serialize_element(&self.lng)?;
+        tup.end()
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CoordinateList(Vec<LatLng>);
+pub struct CoordinateList(pub Vec<LatLng>);
+impl CoordinateList {
+
+    /// This is to get the inside value of the Tuple struct.
+    pub fn value(&self) -> &[LatLng] {
+        let Self(value) = self;
+        return &value
+    }
+
+    pub fn len(&self) -> usize {
+        return self.value().len()
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct IOCoordinateLists([CoordinateList; 2]);
+pub struct IOCoordinateLists(pub [CoordinateList; 2]);
 impl pickle::traits::PickleImport<Self> for IOCoordinateLists {
 
     /// Create a IOCoordinateLists object from a Python compatible pickle array of ubytes.
@@ -34,6 +64,18 @@ impl pickle::traits::PickleImport<Self> for IOCoordinateLists {
                 "Expected [ List[ Tuple[ f64, f64 ] ], List[ Tuple[ f64, f64 ] ] ]."
             );
         }
+    }
+}
+impl IOCoordinateLists {
+
+    /// This is to get the inside value of the Tuple struct.
+    pub fn arrays(&self) -> [&CoordinateList; 2] {
+        let Self([array1, array2]) = self;
+        return [&array1, &array2]
+    }
+    pub fn shape(&self) -> (usize, usize) {
+        let [array1, array2] = self.arrays();
+        return (array1.len(), array2.len())
     }
 }
 impl pickle::traits::PickleExport for IOCoordinateLists {
@@ -65,6 +107,8 @@ pub enum CalculationResult {
     Unpopulated,
 }
 impl Serialize for CalculationResult {
+    /// This Enum needs to know how to serialize itself.
+    /// Its not difficult - it just needs to use the internal value instead.
     fn serialize<S>(
         &self,
         serializer: S
@@ -87,10 +131,11 @@ impl Serialize for CalculationResult {
     }
 }
 
-
+/// A result array of variable size to
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IOResultArray(Vec<Vec<CalculationResult>>);
 impl IOResultArray {
+    /// Creates a new, empty IOResultArray to check if
     pub fn new(shape:(usize, usize)) -> Self {
         fn make_row(size:usize) -> Vec<CalculationResult> {
             (0..size).map(|_| CalculationResult::Unpopulated).collect()
