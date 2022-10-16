@@ -1,4 +1,4 @@
 /// ==============================
 ///  Data Structs and definitions
 /// ==============================
-mod structs;
+pub mod structs;
