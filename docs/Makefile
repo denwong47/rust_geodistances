@@ -8,7 +8,7 @@ SPHINXBUILD   ?= sphinx-build
 SPHINXAPIDOC  ?= sphinx-apidoc
 SOURCEDIR     = source
 BUILDDIR      = build
-APPDIR		  = ../src/py/rust_primes
+APPDIR		  = ../src/py/rust_geodistances
 
 EXCLUDES	  =
 

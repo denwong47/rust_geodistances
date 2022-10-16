@@ -149,5 +149,5 @@ cython_debug/
 # Only include the release binary
 /bin/*/debug
 /bin/*/release/*
-!/bin/*/release/rust_primes
+!/bin/*/release/rust_geodistances
 !/bin/*/release/*.py

@@ -15,5 +15,16 @@ replay: BAKE_OPTIONS=--replay
 replay: watch
 	;
 
+pip_reinstall:
+	python3 -m pip install -e ./
+
 rust_release:
 	cargo build --release --target-dir ./bin/rust_geodistances_backend
+
+docs_rebuild_only:
+	cd docs; make rebuild
+
+docs_build:
+	cd docs; make html; make text
+
+docs_rebuild: docs_rebuild_only docs_build
