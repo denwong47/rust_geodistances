@@ -13,10 +13,18 @@ use serde_pickle;
 use crate::input_output::pickle;
 
 /// A point of latitude and longitude.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Copy, Clone)]
 pub struct LatLng{
     pub lat: f64,
     pub lng: f64,
+}
+impl LatLng {
+    pub fn new(lat:f64, lng:f64) -> Self {
+        return Self {
+            lat: lat,
+            lng: lng,
+        }
+    }
 }
 impl Serialize for LatLng {
     /// If we don't specify, this thing is going to serialize into a dict.
