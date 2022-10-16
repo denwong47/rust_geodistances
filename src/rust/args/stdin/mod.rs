@@ -8,21 +8,20 @@ use std::io::BufRead;
 ///
 /// However since this is meant to be a backend for Python, which is the only supposed
 /// caller, then this should be fine.
-pub fn get_stdin() -> String {
+pub fn get_stdin() -> Vec<u8> {
 
-    let mut stdin_input = String::new();
-    let mut stdin_line = String::new();
+    let mut output_bytes:Vec<u8> = Vec::new();
+    let mut buffer_bytes:Vec<u8> = Vec::new();
     let stdin = io::stdin();
 
-    while let Ok(stdin_len) = stdin.lock().read_line(&mut stdin_line) {
-        if stdin_len == 0 {
-            break;
+    // The delimiting character doesn't really matter - we are just looping until done.
+    while let Ok(read_len) = stdin.lock().read_until(b'\x00', &mut buffer_bytes) {
+        if read_len == 0 {
+            // Reading has ended.
+            break
         }
-
-        stdin_input.push_str(&stdin_line);
-
-        stdin_line.clear();
+        output_bytes.append(&mut buffer_bytes);
     }
 
-    return stdin_input;
+    return output_bytes;
 }
