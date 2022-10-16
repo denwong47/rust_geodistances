@@ -8,6 +8,10 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../src/py"))
 
+from rust_geodistances import config
+
+config.env.SPHINX_IS_BUILDING = 1
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
