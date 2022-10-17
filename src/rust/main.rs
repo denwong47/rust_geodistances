@@ -11,6 +11,7 @@ struct DistanceCompare{
     e: data::structs::LatLng,
     haversine: f64,
     cartesian: f64,
+    vincenty: f64,
 }
 
 #[allow(unused_variables)]
@@ -41,29 +42,14 @@ fn main() -> Result<(), ()> {
             e: point2,
             haversine: geodistances::Haversine::distance(&point1, &point2).unwrap(),
             cartesian: geodistances::Cartesian::distance(&point1, &point2).unwrap(),
+            vincenty: geodistances::Vincenty::distance(&point1, &point2).unwrap(),
         }
     }
-    let _results:Vec<DistanceCompare> = (0..1000000).map(calculate).collect();
-
-    let mut _max_ratio:f64 = 0.;
-    let mut _min_ratio:f64 = 100000.;
-    let mut _count:u32 = 0;
+    let _results:Vec<DistanceCompare> = (0..100).map(calculate).collect();
 
     for _result in _results {
-        // println!("{:?}", _result);
-
-        if _result.haversine <= 1000. {
-            _count += 1;
-            if _result.haversine / _result.cartesian > _max_ratio {
-                _max_ratio = _result.haversine / _result.cartesian
-            }
-            if _result.haversine / _result.cartesian < _min_ratio {
-                _min_ratio = _result.haversine / _result.cartesian
-            }
-        }
+        println!("{:?}", _result);
     }
-
-    println!("{:?} {:?} {:?}", _count, _max_ratio, _min_ratio);
 
     return Ok(());
 }
