@@ -1,12 +1,7 @@
-use std::f64::consts::PI;
-
 mod input_output;
 use input_output::pickle::traits::{PickleImport, PickleExport};
 mod data;
 mod geodistances;
-use geodistances::traits::{CalculateDistance, CheckDistance};
-
-use rand::Rng;
 
 
 #[allow(unused_variables)]

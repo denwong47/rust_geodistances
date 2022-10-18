@@ -51,6 +51,8 @@ impl CalculateDistance for Vincenty {
 
             let mut sin_lng_r:f64 = 0.;
             let mut cos_lng_r:f64 = 0.;
+            drop(&sin_lng_r);
+            drop(&cos_lng_r);
 
             let antipodal = diff_lng_r > PI/2. || (s_lat_r - e_lat_r).abs() > PI/2.;
 

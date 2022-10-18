@@ -4,7 +4,6 @@
 ///
 ///
 use std::cmp;
-use std::ops::Range;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::ser::SerializeTuple;
@@ -264,6 +263,7 @@ impl IOResultArray {
 
     /// Return a tuple of (usize, usize) stating the shape of the underlying data.
     /// Assumes all secondary Vecs are the same size.
+    #[allow(dead_code)]
     pub fn shape(&self) -> (usize, usize) {
         let x:usize = self.array.len();
         let y:usize = self.array[0].len();
@@ -272,6 +272,7 @@ impl IOResultArray {
     }
 
     /// Replace the vector contents of [x..x+w, y..y+h] with the contents of `replace_with`.
+    #[allow(dead_code)]
     pub fn splice(
         &mut self,
         origin:(usize, usize),

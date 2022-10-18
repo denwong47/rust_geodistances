@@ -10,6 +10,7 @@ pub use cartesian::Cartesian;
 use crate::data::structs::{LatLng, CalculationResult, IOCoordinateLists, IOResultArray};
 use traits::{CalculateDistance, CheckDistance};
 
+#[allow(dead_code)]
 pub fn distance_between_two_points<C: CalculateDistance>(
     points: (LatLng, LatLng),
 ) -> CalculationResult {
@@ -22,18 +23,22 @@ pub fn distance_between_two_points<C: CalculateDistance>(
     )
 }
 
-pub fn within_distance_between_two_points<C: CalculateDistance>(
+#[allow(dead_code)]
+pub fn within_distance_between_two_points<C: CheckDistance>(
     points: (LatLng, LatLng),
     distance: f64,
 ) -> CalculationResult {
+    let (s, e) = points;
 
-    if let CalculationResult::Geodistance(Some(measured)) = distance_between_two_points::<C>(points) {
-        return CalculationResult::WithinDistance(measured <= distance);
-    } else {
-        return CalculationResult::WithinDistance(false);
-    }
+    return CalculationResult::WithinDistance(
+        C::within_distance(
+            &s, &e,
+            distance,
+        )
+    )
 }
 
+#[allow(dead_code)]
 pub fn distance_map_unthreaded<C: CalculateDistance>(
     input: &IOCoordinateLists,
 ) -> IOResultArray {
