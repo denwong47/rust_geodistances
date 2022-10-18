@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use crate::data::structs::LatLng;
 use crate::geodistances::traits::{CalculateDistance, CheckDistance};
 
@@ -17,10 +19,13 @@ impl CalculateDistance for Cartesian {
         e:&LatLng,
     )->Option<f64> {
 
-        return Some((
-            (e.lat - s.lat).abs().powi(2)
-            + (e.lng - s.lng).abs().powi(2)
-        ).sqrt() * CARTESIAN_DISTANCE_COEFFICIENT)
+        return Some(
+            (
+                (e.lat - s.lat).abs().powi(2)
+                + (e.lng - s.lng).abs().powi(2)
+            ).sqrt()
+            * CARTESIAN_DISTANCE_COEFFICIENT
+        )
     }
 }
 impl CheckDistance for Cartesian {

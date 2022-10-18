@@ -2,6 +2,8 @@
 ///  Structs for data structures.
 /// ==============================
 ///
+///
+use std::ops::Range;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::ser::SerializeTuple;
@@ -185,7 +187,7 @@ impl pickle::traits::PickleExport for IOCoordinateLists {
 /// - WithinDistance - bool; determines if something is within distance. Always
 ///   populated.
 /// - Unpopulated - placeholder value until an array value is filled. Serialise to Null.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Copy, Clone)]
 pub enum CalculationResult {
     Geodistance(Option<f64>),
     WithinDistance(bool),
@@ -217,21 +219,32 @@ impl Serialize for CalculationResult {
 }
 
 /// A result array of variable size to
-#[derive(Debug, Serialize, Deserialize)]
-pub struct IOResultArray(Vec<Vec<CalculationResult>>);
+#[derive(Debug, Deserialize)]
+pub struct IOResultArray{
+    array: Vec<Vec<CalculationResult>>
+}
 impl IOResultArray {
 
     /// Creates a new, empty IOResultArray.
     /// All initial values will be set to Unpopulated;
     /// if serialized, these will be come Nulls.
     pub fn new(shape:(usize, usize)) -> Self {
-        fn make_row(size:usize) -> Vec<CalculationResult> {
-            (0..size).map(|_| CalculationResult::Unpopulated).collect()
+        return Self::full(shape, CalculationResult::Unpopulated);
+    }
+
+    #[allow(dead_code)]
+    pub fn full(shape:(usize, usize), value: CalculationResult) -> Self {
+        fn make_row_closure(value: CalculationResult, size:usize) ->
+        Box<dyn Fn(usize) -> Vec<CalculationResult>> {
+            Box::new(move |_| (0..size).map(|_| value.clone()).collect())
         }
 
-        let _vec = (0..shape.0).map(|_| make_row(shape.1)).collect();
+        let _vec = (0..shape.0).map(make_row_closure(value, shape.1)).collect();
 
-        Self(_vec)
+        return Self{
+            // RefCell?
+            array:_vec
+        }
     }
 
     /// A wrapper function for ::new(), to create a IOResultArray that suits the size
@@ -239,6 +252,11 @@ impl IOResultArray {
     pub fn like_input(input: &IOCoordinateLists) -> Self {
         return Self::new(input.shape());
     }
+
+    pub fn like_input_full(input: &IOCoordinateLists, value: CalculationResult) -> Self {
+        return Self::full(input.shape(), value);
+    }
+
 }
 impl pickle::traits::PickleExport for IOResultArray {
     /// Create a Python compatible pickle array of ubytes from a IOCoordinateLists object.
@@ -258,5 +276,23 @@ impl pickle::traits::PickleExport for IOResultArray {
                 self
             );
         }
+    }
+}
+impl Serialize for IOResultArray {
+    /// This guy is a fielded struct, and thus will Serialize as a dict. We need to change that.
+    #[allow(dead_code)]
+    fn serialize<S>(
+        &self,
+        serializer: S
+    ) -> Result<S::Ok, S::Error>
+    where S: Serializer {
+        let mut tup = serializer.serialize_tuple(self.array.len())?;
+
+        let array = &self.array;
+
+        for element in array {
+            tup.serialize_element(&element)?;
+        }
+        tup.end()
     }
 }
