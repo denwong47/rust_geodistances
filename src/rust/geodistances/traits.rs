@@ -7,7 +7,7 @@ pub trait CalculateDistance {
     )->Option<f64>;
 }
 
-pub trait CheckDistance {
+pub trait CheckDistance:CalculateDistance {
     fn within_distance(
         s:&LatLng,
         e:&LatLng,

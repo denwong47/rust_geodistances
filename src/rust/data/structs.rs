@@ -3,6 +3,7 @@
 /// ==============================
 ///
 ///
+use std::cmp;
 use std::ops::Range;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -21,6 +22,7 @@ pub struct LatLng{
     pub lng: f64,
 }
 impl LatLng {
+    #[allow(dead_code)]
     pub fn new(lat:f64, lng:f64) -> Self {
         return Self {
             lat: lat,
@@ -79,7 +81,8 @@ impl pickle::traits::PickleImport<Self> for IOCoordinateLists {
             return coordinate_lists;
         } else {
             panic!(
-                "Rust Backend: Incoming data is not well formed. Expected [ [ (f64, f64), ... ], [ (f64, f64), ... ] ]."
+                "Rust Backend: Incoming data is not well formed. Expected [ [ (f64, f64), ... ], [ (f64, f64), ... ] ], found {:?}",
+                data
             );
         }
     }
@@ -219,20 +222,20 @@ impl Serialize for CalculationResult {
 }
 
 /// A result array of variable size to
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct IOResultArray{
-    array: Vec<Vec<CalculationResult>>
+    pub array: Vec<Vec<CalculationResult>>
 }
 impl IOResultArray {
 
     /// Creates a new, empty IOResultArray.
     /// All initial values will be set to Unpopulated;
     /// if serialized, these will be come Nulls.
+    #[allow(dead_code)]
     pub fn new(shape:(usize, usize)) -> Self {
         return Self::full(shape, CalculationResult::Unpopulated);
     }
 
-    #[allow(dead_code)]
     pub fn full(shape:(usize, usize), value: CalculationResult) -> Self {
         fn make_row_closure(value: CalculationResult, size:usize) ->
         Box<dyn Fn(usize) -> Vec<CalculationResult>> {
@@ -249,14 +252,49 @@ impl IOResultArray {
 
     /// A wrapper function for ::new(), to create a IOResultArray that suits the size
     /// of the input arrays.
+    #[allow(dead_code)]
     pub fn like_input(input: &IOCoordinateLists) -> Self {
         return Self::new(input.shape());
     }
 
+    #[allow(dead_code)]
     pub fn like_input_full(input: &IOCoordinateLists, value: CalculationResult) -> Self {
         return Self::full(input.shape(), value);
     }
 
+    /// Return a tuple of (usize, usize) stating the shape of the underlying data.
+    /// Assumes all secondary Vecs are the same size.
+    pub fn shape(&self) -> (usize, usize) {
+        let x:usize = self.array.len();
+        let y:usize = self.array[0].len();
+
+        return (x, y);
+    }
+
+    /// Replace the vector contents of [x..x+w, y..y+h] with the contents of `replace_with`.
+    pub fn splice(
+        &mut self,
+        origin:(usize, usize),
+        mut replace_with:IOResultArray
+    ) {
+        let (x, y) = origin;
+        let (a, b) = self.shape();
+        let (w, h) = replace_with.shape();
+
+        let upper_x = cmp::min(x+w, a);
+        let upper_y = cmp::min(y+h, b);
+
+        let array:&mut [Vec<CalculationResult>] = self.array.as_mut_slice();
+
+        for row in (x..upper_x).rev() {
+            let last_element = replace_with.array.pop();
+
+            if let Some(slice) = last_element {
+                array[row][y..upper_y].copy_from_slice(&slice[0..(upper_y-y)])
+                // drop(array[row].splice(y..upper_y, slice[0..(upper_y-y)].clone()))
+            }
+        }
+    }
 }
 impl pickle::traits::PickleExport for IOResultArray {
     /// Create a Python compatible pickle array of ubytes from a IOCoordinateLists object.

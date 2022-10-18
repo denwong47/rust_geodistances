@@ -19,6 +19,7 @@ const ITERATIONS:u16 = 1000;
 ///  This algorithm does not work when Latitude = 90 or -90
 pub struct Vincenty;
 impl CalculateDistance for Vincenty {
+    #[allow(non_snake_case)]
     fn distance(
         s:&LatLng,
         e:&LatLng,
@@ -60,6 +61,10 @@ impl CalculateDistance for Vincenty {
             let mut sin_azimuth_of_geodesic_at_equator:f64 = 0.;
             let mut cos_2_ang_dist_from_equator_bisect:f64 = 0.;
             let mut cos_sq_azimuth_of_geodesic_at_equator:f64 = 0.;
+
+            // Dropping a useless reference.
+            // Just to get around the compiler "value never used" check.
+            drop(&sin_azimuth_of_geodesic_at_equator);
 
             for _ in 0..ITERATIONS {
                 sin_lng_r = _lambda.sin();

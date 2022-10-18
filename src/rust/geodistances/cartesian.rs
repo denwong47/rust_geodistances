@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+// use std::f64::consts::PI;
 
 use crate::data::structs::LatLng;
 use crate::geodistances::traits::{CalculateDistance, CheckDistance};
