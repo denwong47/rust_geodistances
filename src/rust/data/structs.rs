@@ -296,6 +296,28 @@ impl IOResultArray {
             }
         }
     }
+
+    /// Take the bottom left half of the array and mirror it to the upper right
+    #[allow(dead_code)]
+    pub fn mirror_fill(
+        &mut self,
+        diagonal_value: CalculationResult,
+    ) {
+        let (a, b) = self.shape();
+        let max_dim = cmp::min(a, b);
+
+        for row in 0..max_dim {
+            for col in row..max_dim {
+                // If its on the diagonal, put the default value in
+                // Otherwise, clone from the mirrored half.
+                self.array[row][col] = if col == row {
+                    diagonal_value
+                } else {
+                    self.array[col][row].clone()
+                }
+            }
+        }
+    }
 }
 impl pickle::traits::PickleExport for IOResultArray {
     /// Create a Python compatible pickle array of ubytes from a IOCoordinateLists object.

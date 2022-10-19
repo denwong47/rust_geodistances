@@ -12,7 +12,15 @@ fn main() -> Result<(), ()> {
 
     // let mut array_outputs = data::structs::IOResultArray::like_input_full(&array_inputs, data::structs::CalculationResult::Geodistance(Some(0.)));
 
-    let array_outputs = geodistances::distance_map_unthreaded::<geodistances::Vincenty>(&array_inputs);
+    let mut array_outputs = data::structs::IOResultArray::like_input(&array_inputs);
+
+    let origin = (0,0);
+    let size = array_outputs.shape();
+
+    array_outputs.splice(
+        origin,
+        geodistances::distance_map_unthreaded::<geodistances::Vincenty>(&array_inputs, origin, size)
+    );
 
     // let mut slice_outputs = data::structs::IOResultArray::full((5, 10), data::structs::CalculationResult::Geodistance(Some(PI)));
 

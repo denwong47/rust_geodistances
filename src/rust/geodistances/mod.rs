@@ -1,3 +1,5 @@
+use std::cmp;
+
 pub mod haversine;
 pub mod vincenty;
 pub mod cartesian;
@@ -41,20 +43,38 @@ pub fn within_distance_between_two_points<C: CheckDistance>(
 #[allow(dead_code)]
 pub fn distance_map_unthreaded<C: CalculateDistance>(
     input: &IOCoordinateLists,
+    origin: (usize, usize),
+    size: (usize, usize),
 ) -> IOResultArray {
-    let mut output = IOResultArray::like_input(&input);
+    let (x, y) = origin;
+    let (a, b) = input.shape();
+    let (w, h) = size;
 
-    let (w, h) = input.shape();
+    let upper_x = cmp::min(a, x+w);
+    let upper_y = cmp::min(b, y+h);
+
+    // Re-defining size
+    let size = (upper_x-x, upper_y-y);
+
     let [array1, array2] = input.arrays();
 
-    for x in 0..w {
-        output.array[x] =   (0..h)
-                            .map(
-                                |y| distance_between_two_points::<C>(
-                                    (array1.value()[x], array2.value()[y])
-                                )
-                            )
-                            .collect()
+    let mut output = IOResultArray::new(size);
+
+    for row in x..upper_x {
+        for col in y..upper_y {
+
+            // If there is only one array input, then only calculate the left half
+            if input.unique_array_count() > 1 || col<row {
+                output.array[row-x][col-y] = distance_between_two_points::<C>(
+                    (array1.value()[row], array2.value()[col])
+                )
+            }
+        }
+    }
+
+    // If there is only one array input, clone the bottom left half over to the top right
+    if input.unique_array_count() == 1 {
+        output.mirror_fill(CalculationResult::Geodistance(Some(0.)));
     }
 
     return output
