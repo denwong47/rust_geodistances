@@ -11,6 +11,16 @@ This project includes a Rust binary backend:
   :attr:`~rust_geodistances.bin`.
 """
 
+import enum
+
 from . import lib_rust_geodistances as bin
+
+
+class Algorithm(enum.IntEnum):
+    HAVERSINE = 1
+    VINCENTY = 2
+
+    CARTESIAN = 101
+
 
 print("### Init had run ###")

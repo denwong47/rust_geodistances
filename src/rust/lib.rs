@@ -1,36 +1,57 @@
 use pyo3::prelude::*;
+use pyo3::exceptions::PyValueError;
 
 mod data;
 mod input_output;
 mod geodistances;
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn usizes(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
+mod py_compatibility;
+
+use data::structs;
+
+// use geodistances::traits::{CalculateDistance, CheckDistance};
+
+const HAVERSINE:&str = "haversine";
+const VINCENTY:&str  = "vincenty";
+const CARTESIAN:&str = "cartesian";
+
 
 #[pyfunction]
-fn string(s: String) -> PyResult<String> {
-    Ok(s.to_lowercase())
-}
+fn distance_map(
+    input: structs::IOCoordinateLists,
+    origin: Option<(usize, usize)>,
+    size: Option<(usize, usize)>,
+    method: Option<String>,
+) -> PyResult<structs::IOResultArray> {
+    let _origin = origin.unwrap_or_else(|| (0,0));
+    let _size   = size.unwrap_or_else(|| input.shape());
 
-#[pyfunction]
-fn vecu32(v: Vec<u32>) -> PyResult<u32> {
-    Ok(v.iter().sum())
-}
+    let f = match method {
+        Some(method_str) => match method_str.as_str() {
+            HAVERSINE   => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
+            VINCENTY    => geodistances::distance_map_unthreaded::<geodistances::Vincenty>,
+            CARTESIAN   => geodistances::distance_map_unthreaded::<geodistances::Cartesian>,
+            &_          => return Err(
+                PyValueError::new_err(
+                    format!("{} is not a valid calculation method.", method_str)
+                )
+            )
+        }
+        None            => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
+    };
 
-#[pyfunction]
-fn vecvecf64(v: Vec<Vec<f64>>) -> PyResult<Vec<f64>> {
-    Ok(v.iter().map(|x| x.iter().sum()).collect())
+    return Ok(
+        f (
+            &input,
+            _origin,
+            _size,
+        )
+    )
 }
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(usizes, m)?)?;
-    m.add_function(wrap_pyfunction!(string, m)?)?;
-    m.add_function(wrap_pyfunction!(vecu32, m)?)?;
-    m.add_function(wrap_pyfunction!(vecvecf64, m)?)?;
+    m.add_function(wrap_pyfunction!(distance_map, m)?)?;
     Ok(())
 }

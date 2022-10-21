@@ -8,6 +8,7 @@ use std::io::BufRead;
 ///
 /// However since this is meant to be a backend for Python, which is the only supposed
 /// caller, then this should be fine.
+#[allow(dead_code)]
 pub fn get_stdin() -> Vec<u8> {
 
     let mut output_bytes:Vec<u8> = Vec::new();
