@@ -28,3 +28,5 @@ docs_build:
 	cd docs; make html; make text
 
 docs_rebuild: docs_rebuild_only docs_build
+
+full_rebuild: rust_release pip_reinstall docs_rebuild

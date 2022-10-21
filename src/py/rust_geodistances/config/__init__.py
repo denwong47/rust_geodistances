@@ -3,5 +3,7 @@
 =======================
  Configurations Module
 =======================
+
+Any constants and abstractions of environment variables go here.
 """
 from . import env
