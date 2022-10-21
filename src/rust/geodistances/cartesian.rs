@@ -46,17 +46,17 @@ impl OffsetByVector for Cartesian {
         s:&LatLng,
         distance:f64,
         bearing:f64,
-    )->LatLng {
-        let degree_per_km = 360/(2*PI*RADIUS);
+    )->Option<LatLng> {
+        let degree_per_km = 360./(2.*PI*RADIUS);
 
-        let bearingr = bearing / 180 * PI;
+        let bearing_r = bearing / 180. * PI;
 
-        let dx = degree_per_km * distance * bearingr.sin();
-        let dy = degree_per_km * distance * bearingr.cos();
+        let dx = degree_per_km * distance * bearing_r.sin();
+        let dy = degree_per_km * distance * bearing_r.cos();
 
-        return LatLng::new(
+        return Some(LatLng::new(
             s.lat + dy,
             s.lng + dx
-        )
+        ))
     }
 }

@@ -28,3 +28,50 @@ The main 3 supported members are:
 - :attr:`CalculationMethod.VINCENTY`
 - :attr:`CalculationMethod.CARTESIAN`
 """
+
+distance = bin.distance
+"""
+Calculating distance beteen two points.
+
+Parameters
+----------
+source : Tuple[np.float64, np.float64]
+    Source Coordinates.
+
+dest : Tuple[np.float64, np.float64]
+    Destination Coordinates.
+
+method : CalculationMethod
+    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
+    used.
+
+Returns
+-------
+float
+    A floating point number indicating the distance between the two points.
+"""
+
+offset = bin.offset
+"""
+New coordinates by offsetting from another via distance and bearing.
+
+Parameters
+----------
+start : Tuple[np.float64, np.float64]
+    Starting Coordinates.
+
+distance : np.float64
+    Distance to the new point.
+
+bearing : np.float64
+    Bearing to the new point; 0º being North.
+
+method : CalculationMethod
+    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
+    used.
+
+Returns
+-------
+Tuple[float, float]
+    A floating point number indicating the distance between the two points.
+"""

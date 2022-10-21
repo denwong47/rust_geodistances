@@ -7,6 +7,11 @@ impl ToPyObject for structs::LatLng {
         return (&self.lat, &self.lng).to_object(py)
     }
 }
+impl IntoPy<PyObject> for structs::LatLng {
+    fn into_py(self, py:Python) -> Py<PyAny> {
+        return self.to_object(py)
+    }
+}
 
 impl ToPyObject for structs::CoordinateList {
     fn to_object(&self, py: Python<'_>) -> PyObject {
@@ -17,16 +22,24 @@ impl ToPyObject for structs::CoordinateList {
 impl ToPyObject for structs::CalculationResult {
     fn to_object(&self, py: Python<'_>) -> PyObject {
         return match self {
-            Self::Geodistance(distance_option) => {
-                distance_option.to_object(py)
+            Self::Geodistance(option) => {
+                option.to_object(py)
             },
             Self::WithinDistance(value) => {
                 value.to_object(py)
+            },
+            Self::Location(option) => {
+                option.to_object(py)
             },
             Self::Unpopulated => {
                 None::<f64>.to_object(py)
             }
         }
+    }
+}
+impl IntoPy<PyObject> for structs::CalculationResult {
+    fn into_py(self, py:Python) -> Py<PyAny> {
+        return self.to_object(py)
     }
 }
 

@@ -1,5 +1,7 @@
 use std::cmp;
 
+pub mod config;
+
 pub mod haversine;
 pub mod vincenty;
 pub mod cartesian;
@@ -42,15 +44,16 @@ pub fn within_distance_between_two_points<C: CheckDistance>(
 
 #[allow(dead_code)]
 pub fn offset_by_vector_from_point<C: OffsetByVector>(
-    points: (LatLng, LatLng),
+    start: LatLng,
     distance: f64,
+    bearing: f64,
 ) -> CalculationResult {
-    let (s, e) = points;
 
-    return CalculationResult::WithinDistance(
-        C::within_distance(
-            &s, &e,
+    return CalculationResult::Location(
+        C::offset(
+            &start,
             distance,
+            bearing,
         )
     )
 }

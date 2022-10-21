@@ -20,5 +20,5 @@ pub trait OffsetByVector {
         s:&LatLng,
         distance:f64,
         bearing:f64,
-    )->LatLng,
+    )->Option<LatLng>;
 }

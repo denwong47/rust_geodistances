@@ -4,6 +4,7 @@
 ///
 ///
 use std::cmp;
+use std::f64::consts::PI;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::ser::SerializeTuple;
@@ -13,6 +14,12 @@ use serde::de::Error;
 use serde_pickle;
 
 use crate::input_output::pickle;
+
+// #[derive(Debug, Deserialize, Copy, Clone)]
+// pub struct Vector{
+//     pub distance: f64,
+//     pub bearing: f64,
+// }
 
 /// A point of latitude and longitude.
 #[derive(Debug, Deserialize, Copy, Clone)]
@@ -24,9 +31,25 @@ impl LatLng {
     #[allow(dead_code)]
     pub fn new(lat:f64, lng:f64) -> Self {
         return Self {
-            lat: (lat+90.) % 180. -90.,
-            lng: (lng+180.) % 360. -180.,
+            lat: (lat+270.) % 180. -90.,
+            lng: (lng+540.) % 360. -180.,
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn new_from_rad(lat_r:f64, lng_r:f64) -> Self {
+        return Self::new(
+            lat_r / PI * 180.,
+            lng_r / PI * 180.
+        )
+    }
+
+    #[allow(dead_code)]
+    pub fn as_rad(&self) -> (f64, f64) {
+        return (
+            self.lat / 180. * PI,
+            self.lng / 180. * PI
+        )
     }
 }
 impl Serialize for LatLng {
@@ -193,6 +216,7 @@ impl pickle::traits::PickleExport for IOCoordinateLists {
 pub enum CalculationResult {
     Geodistance(Option<f64>),
     WithinDistance(bool),
+    Location(Option<LatLng>),
     Unpopulated,
 }
 impl Serialize for CalculationResult {
@@ -213,6 +237,12 @@ impl Serialize for CalculationResult {
             Self::WithinDistance(value) => {
                 serializer.serialize_bool(*value)
             },
+            Self::Location(Some(latlng)) => {
+                latlng.serialize(serializer)
+            },
+            Self::Location(None) => {
+                serializer.serialize_none()
+            }
             Self::Unpopulated => {
                 serializer.serialize_none()
             }
