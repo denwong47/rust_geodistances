@@ -15,6 +15,8 @@ import enum
 
 from . import lib_rust_geodistances as bin
 
+CalculationMethod = bin.CalculationMethod
+
 
 class Algorithm(enum.IntEnum):
     HAVERSINE = 1

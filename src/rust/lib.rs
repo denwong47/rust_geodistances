@@ -21,23 +21,24 @@ fn distance_map(
     input: structs::IOCoordinateLists,
     origin: Option<(usize, usize)>,
     size: Option<(usize, usize)>,
-    method: Option<String>,
+    method: Option<&py_compatibility::enums::CalculationMethod>,
 ) -> PyResult<structs::IOResultArray> {
     let _origin = origin.unwrap_or_else(|| (0,0));
     let _size   = size.unwrap_or_else(|| input.shape());
 
     let f = match method {
-        Some(method_str) => match method_str.as_str() {
-            HAVERSINE   => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
-            VINCENTY    => geodistances::distance_map_unthreaded::<geodistances::Vincenty>,
-            CARTESIAN   => geodistances::distance_map_unthreaded::<geodistances::Cartesian>,
-            &_          => return Err(
-                PyValueError::new_err(
-                    format!("{} is not a valid calculation method.", method_str)
-                )
-            )
+        Some(member) => match member {
+            py_compatibility::enums::CalculationMethod::HAVERSINE   => {
+                geodistances::distance_map_unthreaded::<geodistances::Haversine>
+            }
+            py_compatibility::enums::CalculationMethod::VINCENTY   => {
+                geodistances::distance_map_unthreaded::<geodistances::Vincenty>
+            }
+            py_compatibility::enums::CalculationMethod::CARTESIAN   => {
+                geodistances::distance_map_unthreaded::<geodistances::Cartesian>
+            }
         }
-        None            => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
+        None => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
     };
 
     return Ok(
@@ -53,5 +54,8 @@ fn distance_map(
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_map, m)?)?;
+
+    m.add_class::<py_compatibility::enums::CalculationMethod>()?;
+
     Ok(())
 }
