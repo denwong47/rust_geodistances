@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use crate::data::structs::LatLng;
 
-use crate::geodistances::traits::{CalculateDistance, CheckDistance};
+use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
 
 const ELLIPSE_WGS84_A:f64 = 6378.137;
 const ELLIPSE_WGS84_B:f64 = 6356.752314245;

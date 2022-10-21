@@ -1,10 +1,9 @@
-use crate::data::structs::LatLng;
-use crate::geodistances::traits::{CalculateDistance, CheckDistance};
-
 use std::f64::consts::PI;
 
+use crate::data::structs::LatLng;
+use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
+use crate::geodistances::config::RADIUS;
 
-const RADIUS:f64 = 6373.0;
 
 /// Haversine calculation
 /// Assumes spherical world - fast but has errors up to ~0.35%

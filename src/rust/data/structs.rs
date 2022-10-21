@@ -24,8 +24,8 @@ impl LatLng {
     #[allow(dead_code)]
     pub fn new(lat:f64, lng:f64) -> Self {
         return Self {
-            lat: lat,
-            lng: lng,
+            lat: (lat+90.) % 180. -90.,
+            lng: (lng+180.) % 360. -180.,
         }
     }
 }

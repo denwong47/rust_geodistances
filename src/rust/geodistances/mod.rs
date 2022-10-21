@@ -10,7 +10,7 @@ pub use vincenty::Vincenty;
 pub use cartesian::Cartesian;
 
 use crate::data::structs::{LatLng, CalculationResult, IOCoordinateLists, IOResultArray};
-use traits::{CalculateDistance, CheckDistance};
+use traits::{CalculateDistance, CheckDistance, OffsetByVector};
 
 #[allow(dead_code)]
 pub fn distance_between_two_points<C: CalculateDistance>(
@@ -27,6 +27,21 @@ pub fn distance_between_two_points<C: CalculateDistance>(
 
 #[allow(dead_code)]
 pub fn within_distance_between_two_points<C: CheckDistance>(
+    points: (LatLng, LatLng),
+    distance: f64,
+) -> CalculationResult {
+    let (s, e) = points;
+
+    return CalculationResult::WithinDistance(
+        C::within_distance(
+            &s, &e,
+            distance,
+        )
+    )
+}
+
+#[allow(dead_code)]
+pub fn offset_by_vector_from_point<C: OffsetByVector>(
     points: (LatLng, LatLng),
     distance: f64,
 ) -> CalculationResult {

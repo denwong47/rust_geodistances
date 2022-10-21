@@ -1,7 +1,8 @@
-// use std::f64::consts::PI;
+use std::f64::consts::PI;
 
 use crate::data::structs::LatLng;
-use crate::geodistances::traits::{CalculateDistance, CheckDistance};
+use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
+use crate::geodistances::config::RADIUS;
 
 const CARTESIAN_DISTANCE_COEFFICIENT:f64 = 111.22983322959863;  // Assume 6373km radius
 
@@ -38,5 +39,24 @@ impl CheckDistance for Cartesian {
             Some(measured) => measured <= distance,
             None => false,
         }
+    }
+}
+impl OffsetByVector for Cartesian {
+    fn offset(
+        s:&LatLng,
+        distance:f64,
+        bearing:f64,
+    )->LatLng {
+        let degree_per_km = 360/(2*PI*RADIUS);
+
+        let bearingr = bearing / 180 * PI;
+
+        let dx = degree_per_km * distance * bearingr.sin();
+        let dy = degree_per_km * distance * bearingr.cos();
+
+        return LatLng::new(
+            s.lat + dy,
+            s.lng + dx
+        )
     }
 }

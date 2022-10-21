@@ -14,3 +14,11 @@ pub trait CheckDistance:CalculateDistance {
         distance:f64,
     )->bool;
 }
+
+pub trait OffsetByVector {
+    fn offset(
+        s:&LatLng,
+        distance:f64,
+        bearing:f64,
+    )->LatLng,
+}
