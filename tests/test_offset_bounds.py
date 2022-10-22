@@ -8,7 +8,7 @@ from rust_geodistances import CalculationMethod, bin, offset
 
 random.seed(2)
 
-REPEAT_EXECUTION: int = 500
+REPEAT_EXECUTION: int = 100
 MAX_COORDINATE_LIST_SIZE: int = 200
 MAX_OFFSET_DISTANCE: float = 2000
 

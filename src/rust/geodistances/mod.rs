@@ -245,16 +245,16 @@ pub fn within_distance_map_unthreaded<C: CheckDistance>(
                         )
                     } else {
                         // ** DEBUG PRINT
-                        if let CalculationResult::Geodistance(Some(actual)) = distance_between_two_points::<C>(
-                            (array1.value()[row], array2.value()[col])
-                        ) {
-                            if actual <= distance {
-                                println!("Filter Mistake detected: {:?}<=>{:?} {:?} {:?}<={:?}",
-                                array1.value()[row],
-                                array2.value()[col],
-                                bounds, actual, distance);
-                            }
-                        }
+                        // if let CalculationResult::Geodistance(Some(actual)) = distance_between_two_points::<C>(
+                        //     (array1.value()[row], array2.value()[col])
+                        // ) {
+                        //     if actual <= distance {
+                        //         println!("Filter Mistake detected: {:?}<=>{:?} {:?} {:?}<={:?}",
+                        //         array1.value()[row],
+                        //         array2.value()[col],
+                        //         bounds, actual, distance);
+                        //     }
+                        // }
 
                         // Skip the calculation altogether if its outside of the
                         // 4-directions bounds.
