@@ -387,3 +387,59 @@ impl Serialize for IOResultArray {
         tup.end()
     }
 }
+
+
+#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
+pub struct Bounds{
+    upper_lat_bound: f64,
+    upper_lng_bound: f64,
+    lower_lat_bound: f64,
+    lower_lng_bound: f64
+}
+impl Bounds {
+    #[allow(dead_code)]
+    pub fn new(
+        upper_lat_bound: f64,
+        upper_lng_bound: f64,
+        lower_lat_bound: f64,
+        lower_lng_bound: f64
+    ) -> Self {
+        return Self {
+            upper_lat_bound: upper_lat_bound,
+            upper_lng_bound: upper_lng_bound,
+            lower_lat_bound: lower_lat_bound,
+            lower_lng_bound: lower_lng_bound
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn as_tuple(&self) -> (f64, f64, f64, f64) {
+        return (
+            self.upper_lat_bound,
+            self.upper_lng_bound,
+            self.lower_lat_bound,
+            self.lower_lng_bound
+        )
+    }
+
+    #[allow(dead_code)]
+    pub fn contains(&self, latlng:&LatLng) -> bool {
+        let lat_in_bounds =
+            latlng.lat <= self.upper_lat_bound
+            && latlng.lat >= self.lower_lat_bound
+        ;
+
+        let lng_in_bounds = {
+            if self.lower_lng_bound < self.upper_lng_bound {
+                latlng.lng <= self.upper_lng_bound
+                && latlng.lng >= self.lower_lng_bound
+            } else {
+                // The bound is looping around the international date line
+                latlng.lng >= self.upper_lng_bound
+                || latlng.lng <= self.lower_lng_bound
+            }
+        };
+
+        return lat_in_bounds && lng_in_bounds;
+    }
+}

@@ -3,6 +3,7 @@ use std::f64::consts::PI;
 use crate::data::structs::LatLng;
 
 use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
+use crate::geodistances::config::EPS;
 
 const ELLIPSE_WGS84_A:f64 = 6378.137;
 const ELLIPSE_WGS84_B:f64 = 6356.752314245;
@@ -124,7 +125,7 @@ impl CalculateDistance for Vincenty {
                     ))
                 };
 
-                if (_lambda-_lambda_dash).abs() <= 1e-12 { break }
+                if (_lambda-_lambda_dash).abs() <= EPS { break }
             }
 
             let _uSq = cos_sq_azimuth_of_geodesic_at_equator * (
@@ -230,7 +231,7 @@ impl OffsetByVector for Vincenty {
             ang_dist_dash = ang_dist;
             ang_dist = distance / (ELLIPSE_WGS84_B*_a) + delta_ang_dist;
 
-            if (ang_dist-ang_dist_dash).abs() <= 1e-12 { break }
+            if (ang_dist-ang_dist_dash).abs() <= EPS { break }
 
             if iteration>ITERATIONS-1 {
                 // Vincenty failed to converge

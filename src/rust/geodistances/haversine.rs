@@ -52,22 +52,21 @@ impl OffsetByVector for Haversine {
     )->Option<LatLng> {
         let bearing_r = bearing / 180. * PI;
 
+        let ang_dist = distance/RADIUS;
         let (s_lat_r, s_lng_r) = s.as_rad();
-        // lat2: =ASIN(SIN(lat1)*COS(d/R) + COS(lat1)*SIN(d/R)*COS(brng))
-        // lon2: =lon1 + ATAN2(SIN(brng)*SIN(d/R)*COS(lat1), COS(d/R)-SIN(lat1)*SIN(lat2))
 
         let e_lat_r = {
             (
-                s_lat_r.sin()*(distance/RADIUS)
-                + s_lat_r.cos()*(distance/RADIUS)*bearing_r.cos()
+                s_lat_r.sin()*ang_dist.cos()
+                + s_lat_r.cos()*ang_dist.sin()*bearing_r.cos()
             ).asin()
         };
 
         let e_lng_r = {
             s_lng_r + (
-                bearing_r.sin()*(distance/RADIUS).sin()*s_lat_r.cos()
+                bearing_r.sin()*ang_dist.sin()*s_lat_r.cos()
             ).atan2(
-                (distance/RADIUS).cos()-s_lat_r.sin()*e_lat_r.sin()
+                ang_dist.cos()-s_lat_r.sin()*e_lat_r.sin()
             )
         };
 

@@ -81,7 +81,7 @@ fn offset(
     }
 }
 
-
+/// =====================================================================
 /// ARRAY OPERATIONS
 
 #[pyfunction]
@@ -118,6 +118,54 @@ fn distance_map(
     )
 }
 
+#[pyfunction]
+fn within_distance_map(
+    input: structs::IOCoordinateLists,
+    distance: f64,
+    origin: Option<(usize, usize)>,
+    size: Option<(usize, usize)>,
+    method: Option<&py_compatibility::enums::CalculationMethod>,
+) -> PyResult<structs::IOResultArray> {
+    let _origin = origin.unwrap_or_else(|| (0,0));
+    let _size   = size.unwrap_or_else(|| input.shape());
+
+    if distance < 0. {
+        return Err(
+            PyValueError::new_err(
+                format!(
+                    "Distance supplied must be >0, yet {} found.",
+                    distance
+                )
+            )
+        )
+    }
+
+    let f = match method {
+        Some(member) => match member {
+            py_compatibility::enums::CalculationMethod::HAVERSINE   => {
+                geodistances::within_distance_map_unthreaded::<geodistances::Haversine>
+            }
+            py_compatibility::enums::CalculationMethod::VINCENTY   => {
+                geodistances::within_distance_map_unthreaded::<geodistances::Vincenty>
+            }
+            py_compatibility::enums::CalculationMethod::CARTESIAN   => {
+                geodistances::within_distance_map_unthreaded::<geodistances::Cartesian>
+            }
+        }
+        None => geodistances::within_distance_map_unthreaded::<geodistances::Haversine>,
+    };
+
+    return Ok(
+        f(
+            &input,
+            _origin,
+            _size,
+            distance,
+        )
+    )
+}
+
+/// =====================================================================
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -125,6 +173,7 @@ fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(offset, m)?)?;
 
     m.add_function(wrap_pyfunction!(distance_map, m)?)?;
+    m.add_function(wrap_pyfunction!(within_distance_map, m)?)?;
 
     m.add_class::<py_compatibility::enums::CalculationMethod>()?;
 

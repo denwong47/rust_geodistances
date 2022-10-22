@@ -7,18 +7,19 @@ pub trait CalculateDistance {
     )->Option<f64>;
 }
 
-pub trait CheckDistance:CalculateDistance {
-    fn within_distance(
-        s:&LatLng,
-        e:&LatLng,
-        distance:f64,
-    )->bool;
-}
-
-pub trait OffsetByVector {
+pub trait OffsetByVector:CalculateDistance {
     fn offset(
         s:&LatLng,
         distance:f64,
         bearing:f64,
     )->Option<LatLng>;
+}
+
+//  CheckDistance REQUIRES OffsetByVector
+pub trait CheckDistance:OffsetByVector {
+    fn within_distance(
+        s:&LatLng,
+        e:&LatLng,
+        distance:f64,
+    )->bool;
 }
