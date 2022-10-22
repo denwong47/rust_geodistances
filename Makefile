@@ -18,6 +18,9 @@ replay: watch
 pip_reinstall:
 	python3 -m pip install -e ./
 
+test_run:
+	cat tests/data/random_latlngs_single.pickle | cargo run --bin rust_geodistances
+
 rust_release:
 	cargo build --release --target-dir ./bin/rust_geodistances_backend
 

@@ -8,7 +8,7 @@ use crate::geodistances;
 
 const DEFAULT_WORKERS:usize = 4;
 
-/// Debug information to export the compiled constants to Python
+/// Debug information to export the compiled constants to Python.
 #[derive(FromPyObject)]
 pub struct DebugInformation {
     default_workers: usize,

@@ -1,4 +1,5 @@
 use std::cmp;
+use std::thread;
 
 pub mod config;
 
@@ -210,11 +211,31 @@ pub fn distance_map_unthreaded<C: CalculateDistance>(
 #[allow(dead_code)]
 pub fn distance_map<C: CalculateDistance> (
     input: &IOCoordinateLists,
-    origin: (usize, usize),
-    size: (usize, usize),
     max_workers: Option<usize>,
 ) -> IOResultArray {
-    IOResultArray::like_input(input)
+    let workers = match max_workers {
+        Some(workers) => cmp::min(workers_count(), workers),
+        None => workers_count(),
+    };
+
+    let mut output = IOResultArray::like_input(input);
+    let (w, h) = output.shape();
+
+    let mut handles:Vec<thread::JoinHandle<IOResultArray>> = Vec::with_capacity(workers);
+
+    for thread_id in 0..workers {
+        handles[thread_id] = thread::spawn(|| {
+            IOResultArray::new((2,2))
+        })
+    }
+
+    for handle in handles {
+        if let Ok(result_array) = handle.join() {
+
+        }
+    }
+
+    return output
 }
 
 

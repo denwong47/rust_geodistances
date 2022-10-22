@@ -4,6 +4,7 @@ mod data;
 mod geodistances;
 mod config;
 
+use data::traits::Slicable;
 
 #[allow(unused_variables)]
 fn main() -> Result<(), ()> {
@@ -17,6 +18,8 @@ fn main() -> Result<(), ()> {
 
     let origin = (0,0);
     let size = array_outputs.shape();
+
+    println!("{:?}", array_inputs.slice((1,1), (3,2)));
 
     array_outputs.splice(
         origin,

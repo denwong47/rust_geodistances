@@ -13,6 +13,8 @@ use serde::de::Error;
 // use serde_with::serde_as;
 use serde_pickle;
 
+use crate::data::traits::{Slicable};
+
 use crate::input_output::pickle;
 
 // #[derive(Debug, Deserialize, Copy, Clone)]
@@ -68,7 +70,7 @@ impl Serialize for LatLng {
 }
 
 /// An array of LatLng coordinates.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoordinateList(pub Vec<LatLng>);
 impl CoordinateList {
 
@@ -145,6 +147,31 @@ impl IOCoordinateLists {
             Some(_) => 2 as usize,
             None => 1 as usize,
         }
+    }
+}
+impl Slicable for IOCoordinateLists {
+
+    /// Get a shallow copy slice of itself.
+    fn slice(
+        &self,
+        origin: (usize, usize),
+        size: (usize, usize),
+    ) -> Self {
+
+        let [array1, array2] = self.arrays();
+
+        return Self([
+            Some(CoordinateList(array1.value()[
+                origin.0..cmp::min(
+                    self.shape().0, origin.0+size.0
+                )].to_vec())
+            ),
+            Some(CoordinateList(array2.value()[
+                origin.1..cmp::min(
+                    self.shape().1, origin.1+size.1
+                )].to_vec())
+            )
+        ])
     }
 }
 impl Serialize for IOCoordinateLists {
