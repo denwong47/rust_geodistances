@@ -5,11 +5,11 @@ use crate::data::structs::LatLng;
 use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
 use crate::geodistances::config::EPS;
 
-const ELLIPSE_WGS84_A:f64 = 6378.137;
-const ELLIPSE_WGS84_B:f64 = 6356.752314245;
-const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
+pub const ELLIPSE_WGS84_A:f64 = 6378.137;
+pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
+pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
 
-const ITERATIONS:u16 = 1000;
+pub const ITERATIONS:u16 = 1000;
 
 ///  Vincenty solutions of geodescis on the ellipsoid
 ///  Adapted from https://www.movable-type.co.uk/scripts/latlong-vincenty.html

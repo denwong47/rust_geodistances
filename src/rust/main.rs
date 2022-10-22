@@ -2,6 +2,7 @@ mod input_output;
 use input_output::pickle::traits::{PickleImport, PickleExport};
 mod data;
 mod geodistances;
+mod config;
 
 
 #[allow(unused_variables)]

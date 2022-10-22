@@ -7,7 +7,16 @@ mod geodistances;
 
 mod py_compatibility;
 
+mod config;
+
 use data::structs;
+
+/// DEBUG FUNCTIONS
+#[pyfunction]
+fn debug_info() -> PyResult<config::DebugInformation> {
+    return Ok(config::DebugInformation::new())
+}
+
 
 /// POINT OPERATIONS
 
@@ -169,6 +178,8 @@ fn within_distance_map(
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(debug_info, m)?)?;
+
     m.add_function(wrap_pyfunction!(distance, m)?)?;
     m.add_function(wrap_pyfunction!(offset, m)?)?;
 

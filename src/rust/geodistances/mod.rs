@@ -11,6 +11,8 @@ pub use haversine::Haversine;
 pub use vincenty::Vincenty;
 pub use cartesian::Cartesian;
 
+use crate::config::workers_count;
+
 use crate::data::structs::{Bounds, LatLng, CalculationResult, IOCoordinateLists, IOResultArray};
 use traits::{CalculateDistance, CheckDistance, OffsetByVector};
 
@@ -202,6 +204,17 @@ pub fn distance_map_unthreaded<C: CalculateDistance>(
     }
 
     return output
+}
+
+/// Threaded implementation of distance_map
+#[allow(dead_code)]
+pub fn distance_map<C: CalculateDistance> (
+    input: &IOCoordinateLists,
+    origin: (usize, usize),
+    size: (usize, usize),
+    max_workers: Option<usize>,
+) -> IOResultArray {
+    IOResultArray::like_input(input)
 }
 
 
