@@ -10,6 +10,7 @@ mod py_compatibility;
 mod config;
 
 use data::structs;
+use data::traits::{Slicable};
 
 /// DEBUG FUNCTIONS
 #[pyfunction]

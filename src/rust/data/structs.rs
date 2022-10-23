@@ -126,14 +126,6 @@ impl IOCoordinateLists {
 
     }
 
-    /// Returns a tuple of usizes, stating how many elements are in each array.
-    /// Useful for IOResultArray::new.
-    #[allow(dead_code)]
-    pub fn shape(&self) -> (usize, usize) {
-        let [array1, array2] = self.arrays();
-        return (array1.len(), array2.len())
-    }
-
     /// Input can be one or two arrays.
     /// One array implies that we are measuring distances among the same points,
     /// and there are further optimisation that can be made.
@@ -150,6 +142,14 @@ impl IOCoordinateLists {
     }
 }
 impl Slicable for IOCoordinateLists {
+
+    /// Returns a tuple of usizes, stating how many elements are in each array.
+    /// Useful for IOResultArray::new.
+    #[allow(dead_code)]
+    fn shape(&self) -> (usize, usize) {
+        let [array1, array2] = self.arrays();
+        return (array1.len(), array2.len())
+    }
 
     /// Get a shallow copy slice of itself.
     fn slice(
@@ -172,6 +172,18 @@ impl Slicable for IOCoordinateLists {
                 )].to_vec())
             )
         ])
+    }
+
+    #[allow(dead_code)]
+    fn chunks(
+        &self,
+        count: usize,
+    ) -> ((usize, usize), (usize, usize)) {
+        // Not yet functioning
+        return (
+            (0, 0),
+            self.shape(),
+        )
     }
 }
 impl Serialize for IOCoordinateLists {
@@ -318,16 +330,6 @@ impl IOResultArray {
         return Self::full(input.shape(), value);
     }
 
-    /// Return a tuple of (usize, usize) stating the shape of the underlying data.
-    /// Assumes all secondary Vecs are the same size.
-    #[allow(dead_code)]
-    pub fn shape(&self) -> (usize, usize) {
-        let x:usize = self.array.len();
-        let y:usize = self.array[0].len();
-
-        return (x, y);
-    }
-
     /// Replace the vector contents of [x..x+w, y..y+h] with the contents of `replace_with`.
     #[allow(dead_code)]
     pub fn splice(
@@ -374,6 +376,52 @@ impl IOResultArray {
                 }
             }
         }
+    }
+}
+impl Slicable for IOResultArray {
+
+    /// Return a tuple of (usize, usize) stating the shape of the underlying data.
+    /// Assumes all secondary Vecs are the same size.
+    #[allow(dead_code)]
+    fn shape(&self) -> (usize, usize) {
+        let x:usize = self.array.len();
+        let y:usize = self.array[0].len();
+
+        return (x, y);
+    }
+
+    /// Get a shallow copy slice of itself.
+    fn slice(
+        &self,
+        origin: (usize, usize),
+        size: (usize, usize),
+    ) -> Self {
+
+        fn make_row_closure(
+            array: &'_ [Vec<CalculationResult>],
+            origin: usize,
+            size: usize,
+        ) -> Box<dyn Fn(usize) -> Vec<CalculationResult> + '_> {
+            Box::new(move |row| (origin..origin+size).map(|col| array[row][col].clone()).collect())
+        }
+
+        let _vec = (origin.0..origin.0+size.0).map(make_row_closure(self.array.as_slice(), origin.1, size.1)).collect();
+
+        return Self{
+            array:_vec
+        }
+    }
+
+    #[allow(dead_code)]
+    fn chunks(
+        &self,
+        count: usize,
+    ) -> ((usize, usize), (usize, usize)) {
+        // Not yet functioning
+        return (
+            (0, 0),
+            self.shape(),
+        )
     }
 }
 impl pickle::traits::PickleExport for IOResultArray {

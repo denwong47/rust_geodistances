@@ -15,6 +15,7 @@ pub use cartesian::Cartesian;
 use crate::config::workers_count;
 
 use crate::data::structs::{Bounds, LatLng, CalculationResult, IOCoordinateLists, IOResultArray};
+use crate::data::traits::{Slicable};
 use traits::{CalculateDistance, CheckDistance, OffsetByVector};
 
 #[allow(dead_code)]
@@ -225,6 +226,7 @@ pub fn distance_map<C: CalculateDistance> (
 
     for thread_id in 0..workers {
         handles[thread_id] = thread::spawn(|| {
+            // TODO Actually write this
             IOResultArray::new((2,2))
         })
     }
