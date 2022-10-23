@@ -9,6 +9,10 @@ edition = "2021"
 name = "rust_geodistances"
 path = "src/rust/main.rs"
 
+[[bin]]
+name = "tests"
+path = "src/rust/tests.rs"
+
 [lib]
 name = "lib_rust_geodistances"
 path = "src/rust/lib.rs"

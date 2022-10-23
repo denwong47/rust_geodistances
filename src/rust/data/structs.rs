@@ -402,10 +402,27 @@ impl Slicable for IOResultArray {
             origin: usize,
             size: usize,
         ) -> Box<dyn Fn(usize) -> Vec<CalculationResult> + '_> {
-            Box::new(move |row| (origin..origin+size).map(|col| array[row][col].clone()).collect())
+            Box::new(move |row| (
+                origin
+                ..origin+size
+            ).map(
+                |col| array[row][col].clone()
+            ).collect())
         }
 
-        let _vec = (origin.0..origin.0+size.0).map(make_row_closure(self.array.as_slice(), origin.1, size.1)).collect();
+        let _vec = (
+            origin.0
+            ..cmp::min(origin.0+size.0, self.shape().0)
+        ).map(
+            make_row_closure(
+                self.array.as_slice(),
+                origin.1,
+                cmp::min(
+                    size.1,
+                    self.shape().1 - origin.1
+                )
+            )
+        ).collect();
 
         return Self{
             array:_vec

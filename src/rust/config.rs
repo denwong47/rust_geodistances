@@ -21,6 +21,7 @@ pub struct DebugInformation {
     vincenty_iterations: u16,
 }
 impl DebugInformation {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         return Self {
             workers_count:      workers_count(),
