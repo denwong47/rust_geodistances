@@ -92,7 +92,7 @@ impl CoordinateList {
 /// and there are further optimisation that can be made.
 ///
 /// If none, or 3 or more arrays are provided, Deserialization will fail.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IOCoordinateLists(pub [Option<CoordinateList>; 2]);
 impl pickle::traits::PickleImport<Self> for IOCoordinateLists {
 

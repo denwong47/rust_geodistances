@@ -97,33 +97,34 @@ fn offset(
 #[pyfunction]
 fn distance_map(
     input: structs::IOCoordinateLists,
-    origin: Option<(usize, usize)>,
-    size: Option<(usize, usize)>,
+    // origin: Option<(usize, usize)>,
+    // size: Option<(usize, usize)>,
     method: Option<&py_compatibility::enums::CalculationMethod>,
 ) -> PyResult<structs::IOResultArray> {
-    let _origin = origin.unwrap_or_else(|| (0,0));
-    let _size   = size.unwrap_or_else(|| input.shape());
+    // let _origin = origin.unwrap_or_else(|| (0,0));
+    // let _size   = size.unwrap_or_else(|| input.shape());
 
     let f = match method {
         Some(member) => match member {
             py_compatibility::enums::CalculationMethod::HAVERSINE   => {
-                geodistances::distance_map_unthreaded::<geodistances::Haversine>
+                geodistances::distance_map::<geodistances::Haversine>
             }
             py_compatibility::enums::CalculationMethod::VINCENTY   => {
-                geodistances::distance_map_unthreaded::<geodistances::Vincenty>
+                geodistances::distance_map::<geodistances::Vincenty>
             }
             py_compatibility::enums::CalculationMethod::CARTESIAN   => {
-                geodistances::distance_map_unthreaded::<geodistances::Cartesian>
+                geodistances::distance_map::<geodistances::Cartesian>
             }
         }
-        None => geodistances::distance_map_unthreaded::<geodistances::Haversine>,
+        None => geodistances::distance_map::<geodistances::Haversine>,
     };
 
     return Ok(
         f(
             &input,
-            _origin,
-            _size,
+            // _origin,
+            // _size,
+            None,
         )
     )
 }

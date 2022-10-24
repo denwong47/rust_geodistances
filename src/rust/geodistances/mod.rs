@@ -1,4 +1,5 @@
 use std::cmp;
+use std::sync::Arc;
 use std::thread;
 
 pub mod config;
@@ -221,19 +222,34 @@ pub fn distance_map<C: CalculateDistance> (
 
     let mut output = IOResultArray::like_input(input);
     let (w, h) = output.shape();
+    let _chunk_w = (w as f32/workers as f32).ceil() as usize;
+
+    let input_arc = Arc::new(input.clone());
+
 
     let mut handles:Vec<thread::JoinHandle<IOResultArray>> = Vec::with_capacity(workers);
 
     for thread_id in 0..workers {
-        handles[thread_id] = thread::spawn(|| {
-            // TODO Actually write this
-            IOResultArray::new((2,2))
-        })
+        let input_ref = Arc::clone(&input_arc);
+
+        if w - thread_id*_chunk_w > 0 {
+            handles.push(thread::spawn(move || {
+                // TODO Actually write this
+                distance_map_unthreaded::<C>(
+                    &input_ref,
+                    (thread_id*_chunk_w, 0),
+                    (_chunk_w, h),
+                )
+            }))
+        }
     }
 
-    for handle in handles {
+    for (thread_id, handle) in (0..handles.len()).zip(handles) {
         if let Ok(result_array) = handle.join() {
-
+            output.splice(
+                (thread_id*_chunk_w, 0),
+                result_array,
+            )
         }
     }
 
