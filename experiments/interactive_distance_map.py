@@ -179,10 +179,10 @@ if __name__ == "__main__":
             # Global distances.
 
             print("calculating distances...")
-            distances = haversine_distances(
-                np.deg2rad(np.array([y, x]).reshape(1, 2)), np.deg2rad(grid_arr)
-            )
-            curr_mask = (distances < THRES).reshape(N // 2, N).T
+            distances = np.array(rust_geodistances.bin.distance_map(
+                ([(y, x)], grid_arr)
+            ))
+            curr_mask = (distances < THRES_KM).reshape(N // 2, N).T
             # Clear old points by drawing over them.
             if last_mask is not None:
                 draw_points(mask=last_mask, c="b")
