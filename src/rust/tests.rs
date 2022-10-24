@@ -18,5 +18,5 @@ fn main() {
         }
     }
 
-    println!("{:?}", array_outputs.slice((2,3), (3,5)));
+    println!("{:?}", array_outputs.slice((2,4), (3,20)));
 }

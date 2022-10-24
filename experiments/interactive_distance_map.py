@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 Crude implementation of an interactive map distance visualisation plot.
 
 """
+import math
 from time import perf_counter
 
 import cartopy.crs as ccrs
@@ -10,6 +12,7 @@ import numpy as np
 from sklearn.metrics.pairwise import haversine_distances
 from tqdm import tqdm
 
+import rust_geodistances
 
 if __name__ == "__main__":
     fig, ax = plt.subplots(
@@ -19,10 +22,14 @@ if __name__ == "__main__":
     ax.coastlines()
     ax.set_global()
 
+    TOL = 1e-4
+
     THRES = 0.5
     """
     Distance threshold.
     """
+
+    THRES_KM = rust_geodistances.bin.debug_info()["radius_spherical"] * THRES
 
     N = 100
     xs = np.linspace(-180, 180, N)
@@ -76,21 +83,35 @@ if __name__ == "__main__":
 
         curr_pos = (start_lat, start_lon)
 
-        while distance < target_distance and steps < 100000 and abs(curr_pos[0]) < 90:
-            mag += 5e-3
+        # while distance < target_distance and steps < 100000 and abs(curr_pos[0]) < 90:
+        #     mag += 5e-3
 
-            curr_pos = (start_lat + lat_dir * mag, start_lon + lon_dir * mag)
+        #     curr_pos = (start_lat + lat_dir * mag, start_lon + lon_dir * mag)
 
-            distance = haversine_distances(
-                np.deg2rad(np.array([start_lat, start_lon]).reshape(1, 2)),
-                np.deg2rad(np.array(curr_pos).reshape(1, 2)),
-            )[0][0]
+        #     distance = haversine_distances(
+        #         np.deg2rad(np.array([start_lat, start_lon]).reshape(1, 2)),
+        #         np.deg2rad(np.array(curr_pos).reshape(1, 2)),
+        #     )[0][0]
 
-            steps += 1
+        #     steps += 1
 
-        # Adjust bounds for plotting purposes (ideally would want [-180. 180], and [-90, 90]).
-        print(np.clip(curr_pos[1], -179, 179), np.clip(curr_pos[0], -89, 89))
-        return np.clip(curr_pos[1], -179, 179), np.clip(curr_pos[0], -89, 89)
+        # # Adjust bounds for plotting purposes (ideally would want [-180. 180], and [-90, 90]).
+        # print(np.clip(curr_pos[1], -179, 179), np.clip(curr_pos[0], -89, 89))
+        # # return np.clip(curr_pos[1], -179, 179), np.clip(curr_pos[0], -89, 89)
+
+        # _return = np.clip(curr_pos[0], -89, 89), np.clip(curr_pos[1], -179, 179)
+
+        if abs(lat_dir) > 0:
+            _bearing = math.atan(lon_dir / lat_dir)
+
+            if (lon_dir < 0) ^ (lat_dir < 0):
+                _bearing += 180
+        else:
+            _bearing = 90 if lon_dir > 0 else -90
+
+        _return = rust_geodistances.offset(curr_pos, target_distance, _bearing)
+
+        return _return[1], _return[0]
 
     def draw_points(c="r", mask=default_mask):
         for i, x in enumerate(tqdm(xs, desc="drawing points...")):
@@ -122,36 +143,36 @@ if __name__ == "__main__":
             # N / S.
 
             _x, low_y = inverse_haversine(
-                start_pos=(x, y), vector=(0, -1), target_distance=THRES
+                start_pos=(x, y), vector=(0, -1), target_distance=THRES_KM
             )
-            assert abs(_x - x) < 1e-8, "sanity check"
+            # assert abs(_x - x) < TOL, "sanity check: {_x}, {x}"
             last_markers.extend(ax.plot(x, low_y, marker="o", ms=15, c="C3"))
 
             _x, upp_y = inverse_haversine(
-                start_pos=(x, y), vector=(0, 1), target_distance=THRES
+                start_pos=(x, y), vector=(0, 1), target_distance=THRES_KM
             )
-            assert abs(_x - x) < 1e-8, "sanity check"
+            # assert abs(_x - x) < TOL, "sanity check"
             last_markers.extend(ax.plot(x, upp_y, marker="o", ms=15, c="C3"))
 
             # E / W.
 
             upp_west_x, _ = inverse_haversine(
-                start_pos=(x, upp_y), vector=(-1, 0), target_distance=THRES
+                start_pos=(x, upp_y), vector=(-1, 0), target_distance=THRES_KM
             )
             last_markers.extend(ax.plot(upp_west_x, upp_y, marker="o", ms=15, c="C3"))
 
             upp_east_x, _ = inverse_haversine(
-                start_pos=(x, upp_y), vector=(1, 0), target_distance=THRES
+                start_pos=(x, upp_y), vector=(1, 0), target_distance=THRES_KM
             )
             last_markers.extend(ax.plot(upp_east_x, upp_y, marker="o", ms=15, c="C3"))
 
             low_west_x, _ = inverse_haversine(
-                start_pos=(x, low_y), vector=(-1, 0), target_distance=THRES
+                start_pos=(x, low_y), vector=(-1, 0), target_distance=THRES_KM
             )
             last_markers.extend(ax.plot(low_west_x, low_y, marker="o", ms=15, c="C3"))
 
             low_east_x, _ = inverse_haversine(
-                start_pos=(x, low_y), vector=(1, 0), target_distance=THRES
+                start_pos=(x, low_y), vector=(1, 0), target_distance=THRES_KM
             )
             last_markers.extend(ax.plot(low_east_x, low_y, marker="o", ms=15, c="C3"))
 
