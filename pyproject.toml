@@ -27,6 +27,9 @@ dev = [
     "pytest",
     "sphinx",
 ]
+tests = [
+    "sklearn",
+]
 
 [project.urls]
 repository = "https://github.com/denwong47/rust_geodistances"

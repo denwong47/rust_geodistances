@@ -51,6 +51,26 @@ float
     A floating point number indicating the distance between the two points.
 """
 
+distance_map = bin.distance_map
+"""
+Map distance between two array of Latitude/Longitudes.
+
+Parameters
+----------
+input : List[ List[ Tuple[ np.float64, np.float64 ] ] ]
+    An :class:`list` or :class:`tuple` of 1 or 2 members, each being a :class:`list` of
+    Latitude/Longitudes pair in :class:`np.float64` format.
+
+method : CalculationMethod
+    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
+    used.
+
+Returns
+-------
+List[ List[ np.float64 ] ]
+    The distance map in kilometres.
+"""
+
 offset = bin.offset
 """
 New coordinates by offsetting from another via distance and bearing.

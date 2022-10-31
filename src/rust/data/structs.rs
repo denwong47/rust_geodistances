@@ -175,6 +175,7 @@ impl Slicable for IOCoordinateLists {
     }
 
     #[allow(dead_code)]
+    #[allow(unused_variables)]
     fn chunks(
         &self,
         count: usize,
@@ -430,6 +431,7 @@ impl Slicable for IOResultArray {
     }
 
     #[allow(dead_code)]
+    #[allow(unused_variables)]
     fn chunks(
         &self,
         count: usize,

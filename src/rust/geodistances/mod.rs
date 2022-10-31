@@ -170,7 +170,7 @@ pub fn get_distance_bounds_from_point<C: OffsetByVector>(
 }
 
 #[allow(dead_code)]
-pub fn distance_map_unthreaded<C: CalculateDistance>(
+pub fn distance_map_sector<C: CalculateDistance>(
     input: &IOCoordinateLists,
     origin: (usize, usize),
     size: (usize, usize),
@@ -201,6 +201,30 @@ pub fn distance_map_unthreaded<C: CalculateDistance>(
         }
     }
 
+    return output
+}
+
+/// Unthreaded implementation of distance_map
+#[allow(dead_code)]
+pub fn distance_map_unthreaded<C: CalculateDistance> (
+    input: &IOCoordinateLists,
+    max_workers: Option<usize>,
+) -> IOResultArray {
+    assert!(
+        max_workers == Some(1) || max_workers == None,
+        "When using unthreaded functions, max_workers must be 1; but {:?} found.",
+        max_workers
+    );
+
+    let mut output = IOResultArray::like_input(input);
+    let (w, h) = output.shape();
+
+    output = distance_map_sector::<C>(
+        &input,
+        (0, 0),
+        (w, h),
+    );
+
     // If there is only one array input, clone the bottom left half over to the top right
     if input.unique_array_count() == 1 {
         output.mirror_fill(CalculationResult::Geodistance(Some(0.)));
@@ -208,6 +232,7 @@ pub fn distance_map_unthreaded<C: CalculateDistance>(
 
     return output
 }
+
 
 /// Threaded implementation of distance_map
 #[allow(dead_code)]
@@ -232,10 +257,10 @@ pub fn distance_map<C: CalculateDistance> (
     for thread_id in 0..workers {
         let input_ref = Arc::clone(&input_arc);
 
-        if w - thread_id*_chunk_w > 0 {
+        if (w as i32) - (thread_id as i32) * (_chunk_w as i32) > 0 {
             handles.push(thread::spawn(move || {
                 // TODO Actually write this
-                distance_map_unthreaded::<C>(
+                distance_map_sector::<C>(
                     &input_ref,
                     (thread_id*_chunk_w, 0),
                     (_chunk_w, h),
@@ -251,6 +276,10 @@ pub fn distance_map<C: CalculateDistance> (
                 result_array,
             )
         }
+    }
+
+    if input.unique_array_count() == 1 {
+        output.mirror_fill(CalculationResult::Geodistance(Some(0.)));
     }
 
     return output

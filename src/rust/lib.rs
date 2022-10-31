@@ -97,34 +97,40 @@ fn offset(
 #[pyfunction]
 fn distance_map(
     input: structs::IOCoordinateLists,
-    // origin: Option<(usize, usize)>,
-    // size: Option<(usize, usize)>,
+    threaded: Option<bool>,
     method: Option<&py_compatibility::enums::CalculationMethod>,
+    max_workers: Option<usize>,
 ) -> PyResult<structs::IOResultArray> {
-    // let _origin = origin.unwrap_or_else(|| (0,0));
-    // let _size   = size.unwrap_or_else(|| input.shape());
 
-    let f = match method {
-        Some(member) => match member {
-            py_compatibility::enums::CalculationMethod::HAVERSINE   => {
-                geodistances::distance_map::<geodistances::Haversine>
-            }
-            py_compatibility::enums::CalculationMethod::VINCENTY   => {
-                geodistances::distance_map::<geodistances::Vincenty>
-            }
-            py_compatibility::enums::CalculationMethod::CARTESIAN   => {
-                geodistances::distance_map::<geodistances::Cartesian>
-            }
+    let threaded_mode:bool = match threaded {
+        Some(threaded_mode) => threaded_mode,
+        None => true,
+    };
+
+    let f = match method.unwrap_or_else(
+        || &py_compatibility::enums::CalculationMethod::HAVERSINE
+    ) {
+        py_compatibility::enums::CalculationMethod::HAVERSINE   => if threaded_mode{
+            geodistances::distance_map::<geodistances::Haversine>
+        } else {
+            geodistances::distance_map_unthreaded::<geodistances::Haversine>
         }
-        None => geodistances::distance_map::<geodistances::Haversine>,
+        py_compatibility::enums::CalculationMethod::VINCENTY   => if threaded_mode{
+            geodistances::distance_map::<geodistances::Vincenty>
+        } else {
+            geodistances::distance_map_unthreaded::<geodistances::Vincenty>
+        }
+        py_compatibility::enums::CalculationMethod::CARTESIAN   => if threaded_mode{
+            geodistances::distance_map::<geodistances::Cartesian>
+        } else {
+            geodistances::distance_map_unthreaded::<geodistances::Cartesian>
+        }
     };
 
     return Ok(
         f(
             &input,
-            // _origin,
-            // _size,
-            None,
+            max_workers,
         )
     )
 }
