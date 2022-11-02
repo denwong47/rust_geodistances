@@ -16,7 +16,9 @@ pub enum CalculationResult{
     Unpopulated,
 }
 
-/// A result array of variable size to
+/// A result array of const size declared at definition time.
+/// Example:
+///     IOResultArray::<2,3>::full(CalculationResult::Geodistance(Some(10.)));
 #[derive(Debug, Clone)]
 pub struct IOResultArray<const A:usize, const B:usize>{
     pub array: [[CalculationResult; B]; A],
