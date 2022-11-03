@@ -15,6 +15,16 @@ pub enum CalculationResult{
     Location(Option<LatLng>),
     Unpopulated,
 }
+impl CalculationResult {
+    pub fn repr(&self) -> String {
+        return format!("{:>6}", match self {
+            &CalculationResult::Geodistance(Some(distance)) => format!("{:6.1}", distance),
+            &CalculationResult::WithinDistance(answer) => format!("{:?}", answer),
+            &CalculationResult::Location(Some(latlng)) => format!("{:?}", latlng),
+            _ => "X".to_string()
+        });
+    }
+}
 
 /// A result array of const size declared at definition time.
 /// Example:
@@ -48,6 +58,21 @@ impl<const A:usize, const B:usize> IOResultArray<A,B>{
             array[row][y..upper_y].copy_from_slice(&replace_with.array[row-x][0..(upper_y-y)])
         }
     }
+
+    // pub fn mirror_fill(
+    //     &mut self,
+    //     diagonal_value: CalculationResult,
+    // ) {
+    //     let max_dim = cmp::min(a, b);
+
+    //     for row in 0..max_dim {
+    //         self.array[row][row] = diagonal_value;
+
+    //         let mut tail = self.array[row].clone();
+    //         tail.reverse();
+    //         self.array[row][row+1..max_dim].copy_from_slice(&tail[..row]);
+    //     }
+    // }
 
 }
 impl<const A:usize, const B:usize> Slicable for IOResultArray<A,B> {
