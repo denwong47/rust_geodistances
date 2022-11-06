@@ -8,6 +8,7 @@ use std::f64::consts::PI;
 
 use crate::data::traits::{Slicable};
 
+/// A point of latitude and longitude.
 #[derive(Debug, Copy, Clone)]
 pub struct LatLng{
     pub lat: f64,
@@ -54,6 +55,58 @@ impl fmt::Display for LatLng {
                 _ => "E",
             },
         )
+    }
+}
+
+/// An array of LatLng coordinates.
+#[derive(Debug, Clone)]
+pub struct CoordinateList<const L:usize>(pub [LatLng; L]);
+impl<const L:usize> CoordinateList<L> {
+    /// This is to get the inside value of the Tuple struct.
+    pub fn value(&self) -> &[LatLng] {
+        return &self.0
+    }
+
+    pub fn len(&self) -> usize {
+        return L;
+    }
+}
+
+/// Input Coordinate Lists.
+///
+/// Input can be one or two arrays.
+/// One array implies that we are measuring distances among the same points,
+/// and there are further optimisation that can be made.
+///
+/// If none, or 3 or more arrays are provided, Deserialization will fail.
+#[derive(Debug, Clone)]
+pub struct IOCoordinateLists<const L:usize>(pub [Option<[LatLng; L]>; 2]);
+impl IOCoordinateLists {
+
+    /// This is to get the inside value of the Tuple struct.
+    /// It will evaluate whether the second array exists; if not, it will return another
+    /// reference to the first array.
+    pub fn arrays(&self) -> [&CoordinateList; 2] {
+        let Self([array1, array2]) = self;
+
+        return match array2 {
+            Some(list) => [&array1.as_ref().unwrap(), &list],
+            None => [&array1.as_ref().unwrap(), &array1.as_ref().unwrap()],
+        }
+
+    }
+
+    /// Input can be one or two arrays.
+    /// One array implies that we are measuring distances among the same points,
+    /// and there are further optimisation that can be made.
+    /// This function detects if the second array exists, and return the absolute
+    /// array count.
+    #[allow(dead_code)]
+    pub fn unique_array_count(&self) -> usize {
+        return match self.1 {
+            Some(_) => 2 as usize,
+            None => 1 as usize,
+        }
     }
 }
 
