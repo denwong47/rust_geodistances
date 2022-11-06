@@ -23,7 +23,7 @@ fn main() -> Result<(), ()> {
 
     array_outputs.splice(
         origin,
-        geodistances::distance_map_unthreaded::<geodistances::Vincenty>(&array_inputs, origin, size)
+        geodistances::distance_map_unthreaded::<geodistances::Vincenty>(&array_inputs, Some(1_usize))
     );
 
     // let mut slice_outputs = data::structs::IOResultArray::full((5, 10), data::structs::CalculationResult::Geodistance(Some(PI)));
