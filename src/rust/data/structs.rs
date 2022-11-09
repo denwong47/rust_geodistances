@@ -2,29 +2,14 @@
 ///  Structs for data structures.
 /// ==============================
 ///
-///
-use std::cmp;
+/// This is an alternative version which utilises `const` generics.
+use std::{cmp, fmt};
 use std::f64::consts::PI;
-
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::ser::SerializeTuple;
-use serde::de::Error;
-// use serde_json::{Result, Value};
-// use serde_with::serde_as;
-use serde_pickle;
 
 use crate::data::traits::{Slicable};
 
-use crate::input_output::pickle;
-
-// #[derive(Debug, Deserialize, Copy, Clone)]
-// pub struct Vector{
-//     pub distance: f64,
-//     pub bearing: f64,
-// }
-
 /// A point of latitude and longitude.
-#[derive(Debug, Deserialize, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct LatLng{
     pub lat: f64,
     pub lng: f64,
@@ -54,34 +39,22 @@ impl LatLng {
         )
     }
 }
-impl Serialize for LatLng {
-    /// If we don't specify, this thing is going to serialize into a dict.
-    /// Numpy is not going to be happy - lets make it a tuple.
-    fn serialize<S>(
-        &self,
-        serializer: S
-    ) -> Result<S::Ok, S::Error>
-    where S: Serializer {
-        let mut tup = serializer.serialize_tuple(2)?;
-        tup.serialize_element(&self.lat)?;
-        tup.serialize_element(&self.lng)?;
-        tup.end()
-    }
-}
-
-/// An array of LatLng coordinates.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct CoordinateList(pub Vec<LatLng>);
-impl CoordinateList {
-
-    /// This is to get the inside value of the Tuple struct.
-    pub fn value(&self) -> &[LatLng] {
-        let Self(value) = self;
-        return &value
-    }
-
-    pub fn len(&self) -> usize {
-        return self.value().len()
+impl fmt::Display for LatLng {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:06.2}{},{:06.2}{}",
+            self.lat.abs(),
+            match self.lat {
+                v if v < 0. => "S",
+                _ => "N",
+            },
+            self.lng.abs(),
+            match self.lng {
+                v if v < 0. => "W",
+                _ => "E",
+            },
+        )
     }
 }
 
@@ -93,35 +66,20 @@ impl CoordinateList {
 ///
 /// If none, or 3 or more arrays are provided, Deserialization will fail.
 #[derive(Debug, Clone)]
-pub struct IOCoordinateLists(pub [Option<CoordinateList>; 2]);
-impl pickle::traits::PickleImport<Self> for IOCoordinateLists {
-
-    /// Create a IOCoordinateLists object from a Python compatible pickle array of ubytes.
-    fn from_pickle(data:&[u8]) -> Self {
-        if let Ok(coordinate_lists) = serde_pickle::de::from_slice(
-            data,
-            serde_pickle::de::DeOptions::new()
-        ) {
-            return coordinate_lists;
-        } else {
-            panic!(
-                "Rust Backend: Incoming data is not well formed. Expected [ [ (f64, f64), ... ], [ (f64, f64), ... ] ], found {:?}",
-                data
-            );
-        }
-    }
-}
-impl IOCoordinateLists {
+pub struct LatLngArraysCompare<const L:usize, const M:usize>(Option<[LatLng; L]>, Option<[LatLng; M]>);
+impl<const L:usize, const M:usize> LatLngArraysCompare<L,M> {
 
     /// This is to get the inside value of the Tuple struct.
     /// It will evaluate whether the second array exists; if not, it will return another
     /// reference to the first array.
-    pub fn arrays(&self) -> [&CoordinateList; 2] {
-        let Self([array1, array2]) = self;
+    pub fn arrays(&self) -> (&[LatLng], &[LatLng]) {
+        let (array1, array2) = (self.0, self.1);
 
         return match array2 {
-            Some(list) => [&array1.as_ref().unwrap(), &list],
-            None => [&array1.as_ref().unwrap(), &array1.as_ref().unwrap()],
+            Some(list) => (array1.as_ref().unwrap(), &list),
+            None => {
+                (array1.as_ref().unwrap(), array1.as_ref().unwrap())
+            },
         }
 
     }
@@ -133,300 +91,109 @@ impl IOCoordinateLists {
     /// array count.
     #[allow(dead_code)]
     pub fn unique_array_count(&self) -> usize {
-        let Self([_, array2]) = self;
-
-        return match array2 {
+        return match self.1 {
             Some(_) => 2 as usize,
             None => 1 as usize,
         }
     }
 }
-impl Slicable for IOCoordinateLists {
 
-    /// Returns a tuple of usizes, stating how many elements are in each array.
-    /// Useful for IOResultArray::new.
-    #[allow(dead_code)]
-    fn shape(&self) -> (usize, usize) {
-        let [array1, array2] = self.arrays();
-        return (array1.len(), array2.len())
-    }
-
-    /// Get a shallow copy slice of itself.
-    fn slice(
-        &self,
-        origin: (usize, usize),
-        size: (usize, usize),
-    ) -> Self {
-
-        let [array1, array2] = self.arrays();
-
-        return Self([
-            Some(CoordinateList(array1.value()[
-                origin.0..cmp::min(
-                    self.shape().0, origin.0+size.0
-                )].to_vec())
-            ),
-            Some(CoordinateList(array2.value()[
-                origin.1..cmp::min(
-                    self.shape().1, origin.1+size.1
-                )].to_vec())
-            )
-        ])
-    }
-
-    #[allow(dead_code)]
-    #[allow(unused_variables)]
-    fn chunks(
-        &self,
-        count: usize,
-    ) -> ((usize, usize), (usize, usize)) {
-        // Not yet functioning
-        return (
-            (0, 0),
-            self.shape(),
-        )
-    }
-}
-impl Serialize for IOCoordinateLists {
-    /// This Enum needs to know how to serialize itself.
-    /// Its not difficult - it just needs to use the internal value instead.
-    #[allow(dead_code)]
-    fn serialize<S>(
-        &self,
-        serializer: S
-    ) -> Result<S::Ok, S::Error>
-    where S: Serializer {
-        let mut tup = serializer.serialize_tuple(2)?;
-
-        let [array1, array2] = self.arrays();
-
-        tup.serialize_element(array1)?;
-        tup.serialize_element(array2)?;
-        tup.end()
-    }
-}
-impl<'de> Deserialize<'de> for IOCoordinateLists {
-
-    /// We need to specify how to deserialize here, because there could be 1 or 2 arrays
-    /// provided. We put everything in a Vec first, figure out which case it is, then
-    /// deserialize accordingly.
-    #[allow(dead_code)]
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: Deserializer<'de>
-    {
-        let mut lists = Vec::<CoordinateList>::deserialize(deserializer)?;
-
-        return match lists.len() {
-            2 => Ok(Self([Some(lists.swap_remove(0)), Some(lists.swap_remove(0))])),
-            1 => Ok(Self([Some(lists.swap_remove(0)), None])),
-            len => Err(D::Error::invalid_length(len, &"1 or 2"))
-        }
-    }
-}
-impl pickle::traits::PickleExport for IOCoordinateLists {
-    /// Create a Python compatible pickle array of ubytes from a IOCoordinateLists object.
-    ///
-    /// This is not actually used currently, because the output of this program is in fact the
-    /// distances, not distances.
-    #[allow(dead_code)]
-    fn to_pickle(&self) -> Vec<u8> {
-        if let Ok(data) = serde_pickle::ser::to_vec(
-            self,
-            serde_pickle::ser::SerOptions::new()
-        ) {
-            return data;
-        } else {
-            panic!(
-                "Rust Backend: Data created is not compatible for Python pickling:\n{:?}",
-                self
-            );
-        }
-    }
-}
-
-/// A result of calculation.
-///
-/// Depending on which mode is being called, this could be:
-/// - Geodistance - an optional f64; if not present, it means it is impossible to be
-///   within maximum distance.
-/// - WithinDistance - bool; determines if something is within distance. Always
-///   populated.
-/// - Unpopulated - placeholder value until an array value is filled. Serialise to Null.
-#[derive(Debug, Deserialize, Copy, Clone)]
-pub enum CalculationResult {
+#[derive(Debug, Copy, Clone)]
+pub enum CalculationResult{
     Geodistance(Option<f64>),
     WithinDistance(bool),
     Location(Option<LatLng>),
     Unpopulated,
 }
-impl Serialize for CalculationResult {
-    /// This Enum needs to know how to serialize itself.
-    /// Its not difficult - it just needs to use the internal value instead.
-    fn serialize<S>(
-        &self,
-        serializer: S
-    ) -> Result<S::Ok, S::Error>
-    where S: Serializer {
-        return match self {
-            Self::Geodistance(Some(distance_option)) => {
-                serializer.serialize_f64(*distance_option)
+impl fmt::Display for CalculationResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:>15}", match self {
+            &CalculationResult::Geodistance(Some(distance)) => format!("{:8.2}km", distance),
+            &CalculationResult::Geodistance(None) => "---".to_string(),
+            &CalculationResult::WithinDistance(answer) => match answer {
+                true => "Yes".to_string(),
+                false => "No".to_string()
             },
-            Self::Geodistance(None) => {
-                serializer.serialize_none()
-            },
-            Self::WithinDistance(value) => {
-                serializer.serialize_bool(*value)
-            },
-            Self::Location(Some(latlng)) => {
-                latlng.serialize(serializer)
-            },
-            Self::Location(None) => {
-                serializer.serialize_none()
-            }
-            Self::Unpopulated => {
-                serializer.serialize_none()
-            }
-        }
+            &CalculationResult::Location(Some(latlng)) => format!("{}", latlng),
+            &CalculationResult::Location(None) => "---".to_string(),
+            _ => "?".to_string(),
+        })
     }
 }
 
-/// A result array of variable size to
-#[derive(Debug, Deserialize, Clone)]
-pub struct IOResultArray{
-    pub array: Vec<Vec<CalculationResult>>
+/// A result array of const size declared at definition time.
+/// Example:
+///     IOResultArray::<2,3>::full(CalculationResult::Geodistance(Some(10.)));
+#[derive(Debug, Clone)]
+pub struct CalculationResultGrid<const A:usize, const B:usize>{
+    pub array: [[CalculationResult; B]; A],
 }
-impl IOResultArray {
-
-    /// Creates a new, empty IOResultArray.
-    /// All initial values will be set to Unpopulated;
-    /// if serialized, these will be come Nulls.
-    #[allow(dead_code)]
-    pub fn new(shape:(usize, usize)) -> Self {
-        return Self::full(shape, CalculationResult::Unpopulated);
+impl<const A:usize, const B:usize> CalculationResultGrid<A,B>{
+    pub fn new() -> Self {
+        return Self::full(CalculationResult::Unpopulated)
     }
 
-    pub fn full(shape:(usize, usize), value: CalculationResult) -> Self {
-        fn make_row_closure(value: CalculationResult, size:usize) ->
-        Box<dyn Fn(usize) -> Vec<CalculationResult>> {
-            Box::new(move |_| (0..size).map(|_| value.clone()).collect())
-        }
-
-        let _vec = (0..shape.0).map(make_row_closure(value, shape.1)).collect();
-
+    pub fn full(value:CalculationResult) -> Self {
         return Self{
-            // RefCell?
-            array:_vec
+            array: [[value; B];A]
         }
     }
 
-    /// A wrapper function for ::new(), to create a IOResultArray that suits the size
-    /// of the input arrays.
-    #[allow(dead_code)]
-    pub fn like_input(input: &IOCoordinateLists) -> Self {
-        return Self::new(input.shape());
-    }
-
-    #[allow(dead_code)]
-    pub fn like_input_full(input: &IOCoordinateLists, value: CalculationResult) -> Self {
-        return Self::full(input.shape(), value);
-    }
-
-    /// Replace the vector contents of [x..x+w, y..y+h] with the contents of `replace_with`.
-    #[allow(dead_code)]
-    pub fn splice(
-        &mut self,
-        origin:(usize, usize),
-        mut replace_with:IOResultArray
-    ) {
-        let (x, y) = origin;
-        let (a, b) = self.shape();
-        let (w, h) = replace_with.shape();
-
-        let upper_x = cmp::min(x+w, a);
-        let upper_y = cmp::min(y+h, b);
-
-        let array:&mut [Vec<CalculationResult>] = self.array.as_mut_slice();
-
-        for row in (x..upper_x).rev() {
-            let last_element = replace_with.array.pop();
-
-            if let Some(slice) = last_element {
-                array[row][y..upper_y].copy_from_slice(&slice[0..(upper_y-y)])
-                // drop(array[row].splice(y..upper_y, slice[0..(upper_y-y)].clone()))
-            }
-        }
-    }
-
-    /// Take the bottom left half of the array and mirror it to the upper right
-    #[allow(dead_code)]
     pub fn mirror_fill(
         &mut self,
         diagonal_value: CalculationResult,
     ) {
-        let (a, b) = self.shape();
-        let max_dim = cmp::min(a, b);
+        let max_dim = cmp::min(A, B);
 
         for row in 0..max_dim {
-            for col in row..max_dim {
-                // If its on the diagonal, put the default value in
-                // Otherwise, clone from the mirrored half.
-                self.array[row][col] = if col == row {
-                    diagonal_value
-                } else {
-                    self.array[col][row].clone()
-                }
+            self.array[row][row] = diagonal_value;
+
+            for col in row+1..max_dim {
+                self.array[row][col] = self.array[max_dim-1-row][max_dim-1-col]
             }
         }
     }
+
 }
-impl Slicable for IOResultArray {
+impl<const A:usize, const B:usize> Slicable for CalculationResultGrid<A,B> {
+    type SlicableType<const TA:usize, const TB:usize> = CalculationResultGrid<A,B>;
 
     /// Return a tuple of (usize, usize) stating the shape of the underlying data.
     /// Assumes all secondary Vecs are the same size.
     #[allow(dead_code)]
     fn shape(&self) -> (usize, usize) {
-        let x:usize = self.array.len();
-        let y:usize = self.array[0].len();
-
-        return (x, y);
+        return (A, B);
     }
 
-    /// Get a shallow copy slice of itself.
-    fn slice(
+    /// Get a shallow copy sector of itself.
+    fn sector<const U:usize, const V:usize>(
         &self,
         origin: (usize, usize),
-        size: (usize, usize),
-    ) -> Self {
+    ) -> Self::SlicableType<U,V> {
+        let (x, y) = origin;
+        let (upper_x, upper_y) = (cmp::min(x+U, A), cmp::min(y+V, B));
 
-        fn make_row_closure(
-            array: &'_ [Vec<CalculationResult>],
-            origin: usize,
-            size: usize,
-        ) -> Box<dyn Fn(usize) -> Vec<CalculationResult> + '_> {
-            Box::new(move |row| (
-                origin
-                ..origin+size
-            ).map(
-                |col| array[row][col].clone()
-            ).collect())
+        let mut sliced = Self::SlicableType::<U,V>::new();
+
+        for row in x..upper_x {
+            sliced.array[row-x][..upper_y-y].copy_from_slice(&self.array[row][y..upper_y])
         }
 
-        let _vec = (
-            origin.0
-            ..cmp::min(origin.0+size.0, self.shape().0)
-        ).map(
-            make_row_closure(
-                self.array.as_slice(),
-                origin.1,
-                cmp::min(
-                    size.1,
-                    self.shape().1 - origin.1
-                )
-            )
-        ).collect();
+        return sliced
+    }
 
-        return Self{
-            array:_vec
+    fn sector_replace<const U:usize, const V:usize>(
+        &mut self,
+        origin:(usize, usize),
+        replace_with:Self::SlicableType<U, V>,
+    ) {
+        let (x, y) = origin;
+        let (upper_x, upper_y) = (cmp::min(x+U, A), cmp::min(y+V, B));
+
+        let array = self.array.as_mut_slice();
+
+        for row in x..upper_x {
+            array[row][y..upper_y].copy_from_slice(&replace_with.array[row-x][0..(upper_y-y)])
         }
     }
 
@@ -443,97 +210,87 @@ impl Slicable for IOResultArray {
         )
     }
 }
-impl pickle::traits::PickleExport for IOResultArray {
-    /// Create a Python compatible pickle array of ubytes from a IOCoordinateLists object.
-    ///
-    /// This is not actually used currently, because the output of this program is in fact the
-    /// distances, not distances.
-    #[allow(dead_code)]
-    fn to_pickle(&self) -> Vec<u8> {
-        if let Ok(data) = serde_pickle::ser::to_vec(
-            self,
-            serde_pickle::ser::SerOptions::new()
-        ) {
-            return data;
-        } else {
-            panic!(
-                "Rust Backend: Data created is not compatible for Python pickling:\n{:?}",
-                self
-            );
-        }
-    }
-}
-impl Serialize for IOResultArray {
-    /// This guy is a fielded struct, and thus will Serialize as a dict. We need to change that.
-    #[allow(dead_code)]
-    fn serialize<S>(
-        &self,
-        serializer: S
-    ) -> Result<S::Ok, S::Error>
-    where S: Serializer {
-        let mut tup = serializer.serialize_tuple(self.array.len())?;
 
-        let array = &self.array;
-
-        for element in array {
-            tup.serialize_element(&element)?;
-        }
-        tup.end()
-    }
-}
-
-
-#[derive(Debug, Deserialize, Serialize, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Bounds{
     upper_lat_bound: f64,
-    upper_lng_bound: f64,
+    upper_left_lng_bound: f64,
+    upper_right_lng_bound: f64,
     lower_lat_bound: f64,
-    lower_lng_bound: f64
+    lower_left_lng_bound: f64,
+    lower_right_lng_bound: f64,
 }
 impl Bounds {
     #[allow(dead_code)]
     pub fn new(
         upper_lat_bound: f64,
-        upper_lng_bound: f64,
+        upper_lng_bound: (f64, f64),
         lower_lat_bound: f64,
-        lower_lng_bound: f64
+        lower_lng_bound: (f64, f64),
     ) -> Self {
+        // Ensure upper bound is in fact higher; otherwise we can't understand what it meant
+        assert!(
+            upper_lat_bound >= lower_lat_bound, 
+            "Upper Latitude Bound must be higher than Lower Latitude Bound; but {:?} <= {:?}.",
+            upper_lat_bound, lower_lat_bound,
+        );
+
         return Self {
             upper_lat_bound: upper_lat_bound,
-            upper_lng_bound: upper_lng_bound,
+            upper_left_lng_bound: upper_lng_bound.0,
+            upper_right_lng_bound: upper_lng_bound.1,
             lower_lat_bound: lower_lat_bound,
-            lower_lng_bound: lower_lng_bound
+            lower_left_lng_bound: lower_lng_bound.0,
+            lower_right_lng_bound: lower_lng_bound.1,
+        }
+    }
+    
+    /// Return the longitude bounds at the given latitude
+    #[allow(dead_code)]
+    fn lng_bounds_at_lat(
+        &self,
+        lat: f64,
+    ) -> Option<(f64, f64)> {
+        return match lat {
+            // Inside of lat bounds
+            lat if (
+                lat <= self.upper_lat_bound
+                && lat >= self.lower_lat_bound
+            ) => {
+                let lat_factor = (lat - self.lower_lat_bound)/(self.upper_lat_bound-self.lower_lat_bound);
+
+                return Some(
+                    (
+                        (self.upper_left_lng_bound - self.lower_left_lng_bound)*lat_factor + self.lower_left_lng_bound,
+                        (self.upper_right_lng_bound - self.lower_right_lng_bound)*lat_factor + self.lower_right_lng_bound,
+                    )
+                )
+            },
+            // Out of lat bounds
+            _ => None,
         }
     }
 
-    #[allow(dead_code)]
-    pub fn as_tuple(&self) -> (f64, f64, f64, f64) {
-        return (
-            self.upper_lat_bound,
-            self.upper_lng_bound,
-            self.lower_lat_bound,
-            self.lower_lng_bound
-        )
-    }
-
+    /// 
     #[allow(dead_code)]
     pub fn contains(&self, latlng:&LatLng) -> bool {
-        let lat_in_bounds =
-            latlng.lat <= self.upper_lat_bound
-            && latlng.lat >= self.lower_lat_bound
-        ;
 
-        let lng_in_bounds = {
-            if self.lower_lng_bound < self.upper_lng_bound {
-                latlng.lng <= self.upper_lng_bound
-                && latlng.lng >= self.lower_lng_bound
-            } else {
-                // The bound is looping around the international date line
-                latlng.lng >= self.upper_lng_bound
-                || latlng.lng <= self.lower_lng_bound
-            }
-        };
-
-        return lat_in_bounds && lng_in_bounds;
+        if let Some(lng_bounds_at_lat) = self.lng_bounds_at_lat(latlng.lat) {
+            let lng_in_bounds = {
+                if lng_bounds_at_lat.0 < lng_bounds_at_lat.1 {
+                    latlng.lng <= lng_bounds_at_lat.1
+                    && latlng.lng >= lng_bounds_at_lat.0
+                } else {
+                    // The bound is looping around the international date line
+                    latlng.lng >= lng_bounds_at_lat.1
+                    || latlng.lng <= lng_bounds_at_lat.0
+                }
+            };
+    
+            return lng_in_bounds;
+        } else {
+            return false;
+        }
+        
     }
 }

@@ -29,7 +29,7 @@ def sklearn_distance_map(
         f"{repr(method)} found."
     )
 
-    _radius_spherical = bin.debug_info().get("radius_spherical", 6373.0)
+    _radius_spherical = bin.debug_info().get("radius_spherical", 6371.0)
 
     input = [np.array(_item) * np.pi / 180 for _item in input]
 

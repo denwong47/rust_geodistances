@@ -100,7 +100,7 @@ fn distance_map(
     threaded: Option<bool>,
     method: Option<&py_compatibility::enums::CalculationMethod>,
     max_workers: Option<usize>,
-) -> PyResult<structs::IOResultArray> {
+) -> PyResult<structs::CalculationResultGrid> {
 
     let threaded_mode:bool = match threaded {
         Some(threaded_mode) => threaded_mode,
@@ -142,7 +142,7 @@ fn within_distance_map(
     origin: Option<(usize, usize)>,
     size: Option<(usize, usize)>,
     method: Option<&py_compatibility::enums::CalculationMethod>,
-) -> PyResult<structs::IOResultArray> {
+) -> PyResult<structs::CalculationResultGrid> {
     let _origin = origin.unwrap_or_else(|| (0,0));
     let _size   = size.unwrap_or_else(|| input.shape());
 

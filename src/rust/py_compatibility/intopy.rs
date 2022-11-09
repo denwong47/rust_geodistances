@@ -49,7 +49,7 @@ impl IntoPy<PyObject> for structs::IOCoordinateLists {
     }
 }
 
-impl IntoPy<PyObject> for structs::IOResultArray {
+impl IntoPy<PyObject> for structs::CalculationResultGrid {
     fn into_py(self, py:Python) -> Py<PyAny> {
         return self.array.to_object(py)
     }

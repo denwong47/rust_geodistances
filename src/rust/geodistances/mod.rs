@@ -15,7 +15,7 @@ pub use cartesian::Cartesian;
 
 use crate::config::workers_count;
 
-use crate::data::structs::{Bounds, LatLng, CalculationResult, IOCoordinateLists, IOResultArray};
+use crate::data::structs::{Bounds, LatLng, CalculationResult, LatLngArraysCompare, CalculationResultGrid};
 use crate::data::traits::{Slicable};
 use traits::{CalculateDistance, CheckDistance, OffsetByVector};
 
@@ -68,57 +68,54 @@ pub fn get_distance_bounds_from_point<C: OffsetByVector>(
     start: LatLng,
     distance: f64,
 ) -> Bounds {
-    let mut lng_override: bool = false;
-
-    // Establish Eastern Longitude Bound
-    let upper_lng_bound = {
-        if let CalculationResult::Location(Some(e_bound)) = offset_by_vector_from_point::<C>(
-            start, distance, 90.,
-        ) {
-            e_bound.lng
-        } else {
-            180.
-        }
-    };
-
-    // Establish Western Longitude Bound
-    let lower_lng_bound = {
-        if let CalculationResult::Location(Some(w_bound)) = offset_by_vector_from_point::<C>(
-            start, distance, 270.,
-        ) {
-            w_bound.lng
-        } else {
-            -180.
-        }
-    };
 
     // Establish Northern Latitude Bound
-    let upper_lat_bound = {
-        let default = 90.;
-
-        // If our distance required is longer than the distance from start to the North Pole,
-        // we risk returning a Latitude < 90 while in reality the line had looped OVER the pole.
-        // So we have to detect if we are close to the pole - if we are, then assume max = 90º.
+    let upper_lat_bound = 'upper_lat_bound: {
         if let CalculationResult::Geodistance(Some(distance_to_pole)) = distance_between_two_points::<C>(
             (start, LatLng::new(90. - config::EPS, 0.))
         ) {
-            // Give it a GENEROUS tolerance.
-            // Things close to the poles are WACKY - so if we are anywhere NEAR then we should
-            // basically NOT filter.
-            if distance_to_pole > distance *2. {
-                if let CalculationResult::Location(Some(n_bound)) = offset_by_vector_from_point::<C>(
+            if distance_to_pole > distance {
+                if let CalculationResult::Location(Some(bound)) = offset_by_vector_from_point::<C>(
                     start, distance, 0.,
                 ) {
-                    n_bound.lat
-                } else {
-                    default
+                    // Rust 1.65.0 - named block break
+                    break 'upper_lat_bound bound.lat;
                 }
-            } else {
-                lng_override = true; // Set it to accept any longitudes - its impossible to bound this
-                default
             }
-        } else {
-            default
+        }
+
+        90.
+    };
+
+    // Establish Southern Longitude Bound
+    let lower_lat_bound = 'lower_lat_bound: {
+        if let CalculationResult::Geodistance(Some(distance_to_pole)) = distance_between_two_points::<C>(
+            (start, LatLng::new(90. - config::EPS, 0.))
+        ) {
+            if distance_to_pole > distance {
+                if let CalculationResult::Location(Some(bound)) = offset_by_vector_from_point::<C>(
+                    start, distance, 180.,
+                ) {
+                    break 'lower_lat_bound bound.lat
+                }
+            }
+        }
+        
+        -90.
+    };
+
+    // Establish Northern Latitude Bound
+    let upper_lng_bound: (f64, f64) = {
+        let default:(f64, f64) = (-180., 180.);
+
+        if let (
+            CalculationResult::Location(Some(w_bound)),
+            CalculationResult::Location(Some(e_bound)),
+        ) = (
+            offset_by_vector_from_point::<C>(start, distance, 270.),
+            offset_by_vector_from_point::<C>(start, distance, 90.),
+        ) {
+            n_bound.lat
         }
     };
 
@@ -155,9 +152,9 @@ pub fn get_distance_bounds_from_point<C: OffsetByVector>(
     if lng_override {
         return Bounds::new(
             upper_lat_bound,
-            180.,
+            (-180., 180.),
             lower_lat_bound,
-            -180.
+            (-180., 180.),
         )
     } else {
         return Bounds::new(
@@ -170,24 +167,21 @@ pub fn get_distance_bounds_from_point<C: OffsetByVector>(
 }
 
 #[allow(dead_code)]
-pub fn distance_map_sector<C: CalculateDistance>(
-    input: &IOCoordinateLists,
+pub fn distance_map_sector<C: CalculateDistance, const U:usize, const V:usize, const A:usize, const B:usize>(
+    input: &LatLngArraysCompare<A, B>,
     origin: (usize, usize),
-    size: (usize, usize),
-) -> IOResultArray {
+) -> CalculationResultGrid<U, V> {
     let (x, y) = origin;
-    let (a, b) = input.shape();
-    let (w, h) = size;
 
-    let upper_x = cmp::min(a, x+w);
-    let upper_y = cmp::min(b, y+h);
+    let upper_x = cmp::min(A, x+U);
+    let upper_y = cmp::min(B, y+V);
 
     // Re-defining size
     let size = (upper_x-x, upper_y-y);
 
     let [array1, array2] = input.arrays();
 
-    let mut output = IOResultArray::new(size);
+    let mut output = CalculationResultGrid::<U,V>::new();
 
     for row in x..upper_x {
         for col in y..upper_y {
@@ -206,23 +200,22 @@ pub fn distance_map_sector<C: CalculateDistance>(
 
 /// Unthreaded implementation of distance_map
 #[allow(dead_code)]
-pub fn distance_map_unthreaded<C: CalculateDistance> (
-    input: &IOCoordinateLists,
+pub fn distance_map_unthreaded<C: CalculateDistance, const A:usize, const B:usize>(
+    input: &LatLngArraysCompare<A, B>,
     max_workers: Option<usize>,
-) -> IOResultArray {
+) -> CalculationResultGrid<A, B> {
     assert!(
         max_workers == Some(1) || max_workers == None,
         "When using unthreaded functions, max_workers must be 1; but {:?} found.",
         max_workers
     );
 
-    let mut output = IOResultArray::like_input(input);
+    let mut output = CalculationResultGrid::like_input(input);
     let (w, h) = output.shape();
 
-    output = distance_map_sector::<C>(
+    output = distance_map_sector::<C, A, B>(
         &input,
         (0, 0),
-        (w, h),
     );
 
     // If there is only one array input, clone the bottom left half over to the top right
@@ -236,34 +229,32 @@ pub fn distance_map_unthreaded<C: CalculateDistance> (
 
 /// Threaded implementation of distance_map
 #[allow(dead_code)]
-pub fn distance_map<C: CalculateDistance> (
-    input: &IOCoordinateLists,
+pub fn distance_map<C: CalculateDistance, const A:usize, const B:usize>(
+    input: &LatLngArraysCompare<A, B>,
     max_workers: Option<usize>,
-) -> IOResultArray {
+) -> CalculationResultGrid<A, B> {
     let workers = match max_workers {
         Some(workers) => cmp::min(workers_count(), workers),
         None => workers_count(),
     };
 
-    let mut output = IOResultArray::like_input(input);
-    let (w, h) = output.shape();
-    let _chunk_w = (w as f32/workers as f32).ceil() as usize;
+    let mut output = CalculationResultGrid::<A, B>::new();
+    let _chunk_w = (A as f32/workers as f32).ceil() as usize;
 
+    // TODO Add Arc into the struct instead
     let input_arc = Arc::new(input.clone());
 
-
-    let mut handles:Vec<thread::JoinHandle<IOResultArray>> = Vec::with_capacity(workers);
+    let mut handles:Vec<thread::JoinHandle<CalculationResultGrid>> = Vec::with_capacity(workers);
 
     for thread_id in 0..workers {
         let input_ref = Arc::clone(&input_arc);
 
-        if (w as i32) - (thread_id as i32) * (_chunk_w as i32) > 0 {
+        if (A as i32) - (thread_id as i32) * (_chunk_w as i32) > 0 {
             handles.push(thread::spawn(move || {
                 // TODO Actually write this
                 distance_map_sector::<C>(
                     &input_ref,
                     (thread_id*_chunk_w, 0),
-                    (_chunk_w, h),
                 )
             }))
         }
@@ -287,29 +278,26 @@ pub fn distance_map<C: CalculateDistance> (
 
 
 #[allow(dead_code)]
-pub fn within_distance_map_unthreaded<C: CheckDistance>(
-    input: &IOCoordinateLists,
+pub fn within_distance_map_sector<C: CheckDistance, const U:usize, const V:usize, const A:usize, const B:usize>(
+    input: &LatLngArraysCompare<A, B>,
     origin: (usize, usize),
-    size: (usize, usize),
     distance: f64,
-) -> IOResultArray {
+) -> CalculationResultGrid<A, B> {
     let (x, y) = origin;
-    let (a, b) = input.shape();
-    let (w, h) = size;
 
-    let upper_x = cmp::min(a, x+w);
-    let upper_y = cmp::min(b, y+h);
+    let upper_x = cmp::min(A, x+U);
+    let upper_y = cmp::min(B, y+V);
 
     // Re-defining size
     let size = (upper_x-x, upper_y-y);
 
-    let [array1, array2] = input.arrays();
+    let (array1, array2) = input.arrays();
 
-    let mut output = IOResultArray::new(size);
+    let mut output = CalculationResultGrid::<A, B>::new();
 
     for row in x..upper_x {
         let bounds = get_distance_bounds_from_point::<C>(
-            array1.value()[row],
+            array1[row],
             distance * 1.15  // Extra tolerance - when its non-eucledian geometries
         );
 
@@ -319,9 +307,9 @@ pub fn within_distance_map_unthreaded<C: CheckDistance>(
             if input.unique_array_count() > 1 || col<row {
                 output.array[row-x][col-y] = {
                     // Check if the coordinates are within bound
-                    if bounds.contains(&array2.value()[col]) {
+                    if bounds.contains(&array2[col]) {
                         within_distance_between_two_points::<C>(
-                            (array1.value()[row], array2.value()[col]),
+                            (array1[row], array2[col]),
                             distance
                         )
                     } else {
