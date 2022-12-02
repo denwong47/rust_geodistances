@@ -2,12 +2,17 @@ use std::f64::consts::PI;
 
 use crate::data::structs::LatLng;
 
-use crate::geodistances::traits::{CalculateDistance, CheckDistance, OffsetByVector};
-use crate::geodistances::config::EPS;
-
-pub const ELLIPSE_WGS84_A:f64 = 6378.137;
-pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
-pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
+use crate::geodistances::traits::{
+    CalculateDistance,
+    CheckDistance,
+    OffsetByVector
+};
+use crate::geodistances::config::{
+    EPS,
+    ELLIPSE_WGS84_A,
+    ELLIPSE_WGS84_B,
+    ELLIPSE_WGS84_F,
+};
 
 pub const ITERATIONS:u16 = 1000;
 

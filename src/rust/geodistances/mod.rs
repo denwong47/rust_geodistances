@@ -6,12 +6,10 @@ pub mod config;
 
 pub mod haversine;
 pub mod vincenty;
-pub mod cartesian;
 pub mod traits;
 
 pub use haversine::Haversine;
 pub use vincenty::Vincenty;
-pub use cartesian::Cartesian;
 
 use crate::config::workers_count;
 
@@ -210,10 +208,9 @@ pub fn distance_map_unthreaded<C: CalculateDistance, const A:usize, const B:usiz
         max_workers
     );
 
-    let mut output = CalculationResultGrid::like_input(input);
-    let (w, h) = output.shape();
+    let mut output = CalculationResultGrid::<A, B>::new();
 
-    output = distance_map_sector::<C, A, B>(
+    output = distance_map_sector::<C, A, B, A, B>(
         &input,
         (0, 0),
     );
@@ -239,12 +236,12 @@ pub fn distance_map<C: CalculateDistance, const A:usize, const B:usize>(
     };
 
     let mut output = CalculationResultGrid::<A, B>::new();
-    let _chunk_w = (A as f32/workers as f32).ceil() as usize;
+    let _chunk_w : usize = (A as f32/workers as f32).ceil() as usize;
 
     // TODO Add Arc into the struct instead
     let input_arc = Arc::new(input.clone());
 
-    let mut handles:Vec<thread::JoinHandle<CalculationResultGrid>> = Vec::with_capacity(workers);
+    let mut handles = Vec::with_capacity(workers);
 
     for thread_id in 0..workers {
         let input_ref = Arc::clone(&input_arc);
@@ -252,7 +249,7 @@ pub fn distance_map<C: CalculateDistance, const A:usize, const B:usize>(
         if (A as i32) - (thread_id as i32) * (_chunk_w as i32) > 0 {
             handles.push(thread::spawn(move || {
                 // TODO Actually write this
-                distance_map_sector::<C>(
+                distance_map_sector::<C, {_chunk_w}, B, A, B>(
                     &input_ref,
                     (thread_id*_chunk_w, 0),
                 )
@@ -262,7 +259,7 @@ pub fn distance_map<C: CalculateDistance, const A:usize, const B:usize>(
 
     for (thread_id, handle) in (0..handles.len()).zip(handles) {
         if let Ok(result_array) = handle.join() {
-            output.splice(
+            output.sector_replace(
                 (thread_id*_chunk_w, 0),
                 result_array,
             )

@@ -19,13 +19,15 @@ path = "src/rust/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.17.2", features = ["extension-module"] }
-num-format = "0.4.0"
-timeit = "0.1.2"
+pyo3 = { version = "0.17", features = ["extension-module"] }
+duplicate = "0.4"
+ndarray = "0.15"
+num-format = "0.4"
+timeit = "0.1"
 strum = { version = "0.24", features = ["derive"] }
-serde = { version = "1.0.145", features = ["derive"] }
-serde-pickle = "1.1.1"
-serde_with = "2.0.1"
+
+ndarray_numeric = {git = "https://github.com/denwong47/ndarray_numeric.git"}
+
 
 [package.metadata.maturin]
 python-source = "src/py"
