@@ -1,7 +1,11 @@
 use std::f64::consts::PI;
+use std::ops::Index;
 
 use ndarray::{
-    Array1
+    Array1,
+    Ix1,
+    Ix2,
+    NdIndex,
 };
 
 use super::config::{
@@ -9,6 +13,8 @@ use super::config::{
 };
 
 use super::traits::{
+    LatLng,
+    LatLngArray,
     CalculateDistance,
     OffsetByVector,
     CheckDistance,
@@ -16,13 +22,14 @@ use super::traits::{
 
 use ndarray_numeric::{
     ArrayWithF64Methods,
-    // ArrayWithF64AngularMethods,
     ArrayWithF64PartialOrd,
+    // ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
     F64Array1,
     F64LatLng,
     F64LatLngArray,
 };
+
 
 /// Haversine calculation
 /// Assumes spherical world - fast but has errors up to ~0.35%
@@ -30,8 +37,8 @@ use ndarray_numeric::{
 pub struct Haversine;
 impl CalculateDistance for Haversine {
     fn distance(
-        s:&F64LatLng,
-        e:&dyn ArrayWithF64LatLngMethods,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
     ) -> F64Array1 {
 
         let (s_lat, s_lng) = (s[0], s[1]);
@@ -48,13 +55,13 @@ impl CalculateDistance for Haversine {
             * ((&e_lng_r - s_lng_r)/2.).sin().powi(2)
         };
 
-        return 2. * RADIUS * d.sqrt().asin()
+        return d.sqrt().asin() * 2. * RADIUS;
     }
 }
 
 impl OffsetByVector for Haversine {
     fn offset(
-        s:&dyn ArrayWithF64LatLngMethods,
+        s:&dyn LatLngArray,
         distance:f64,
         bearing:f64,
     ) -> F64LatLngArray {
@@ -66,7 +73,7 @@ impl OffsetByVector for Haversine {
             s_latlng_r.column(0), s_latlng_r.column(1)
         );
 
-        let mut e_lat_r = {
+        let e_lat_r = {
             (
                 s_lat_r.sin()*ang_dist.cos()
                 + s_lat_r.cos()*ang_dist.sin()*bearing_r.cos()
@@ -96,8 +103,8 @@ impl OffsetByVector for Haversine {
 
 impl CheckDistance for Haversine {
     fn within_distance(
-        s:&F64LatLng,
-        e:&dyn ArrayWithF64LatLngMethods,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
         distance:f64,
     ) -> Array1<bool> {
         return Self::distance(s, e).le(&distance);
