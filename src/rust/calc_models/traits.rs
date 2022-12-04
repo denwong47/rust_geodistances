@@ -1,8 +1,12 @@
+use ndarray::{
+    Array1
+};
+
 use ndarray_numeric::{
-    ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
     F64Array1,
     F64LatLng,
+    F64LatLngArray,
 };
 
 pub trait CalculateDistance {
@@ -17,7 +21,7 @@ pub trait OffsetByVector:CalculateDistance {
         s:&dyn ArrayWithF64LatLngMethods,
         distance:f64,
         bearing:f64,
-    ) -> F64LatLng;
+    ) -> F64LatLngArray;
 }
 
 //  CheckDistance REQUIRES OffsetByVector
@@ -26,5 +30,5 @@ pub trait CheckDistance:OffsetByVector {
         s:&F64LatLng,
         e:&dyn ArrayWithF64LatLngMethods,
         distance:f64,
-    ) -> bool;
+    ) -> Array1<bool>;
 }
