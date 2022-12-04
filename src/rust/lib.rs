@@ -4,7 +4,15 @@ use duplicate::duplicate_item;
 use pyo3::prelude::*;
 
 #[allow(unused_imports)]
-use ndarray_numeric::{F64Array, ArrayWithF64Methods};
+use ndarray_numeric::{
+    F64Array,
+    ArrayWithF64Methods
+};
+
+mod calc_models;
+use calc_models::{
+    traits,
+};
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
