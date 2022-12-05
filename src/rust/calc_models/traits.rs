@@ -7,8 +7,8 @@ use ndarray::{
     Dim,
     Ix,
     Ix1,
-    Ix2,
-    NdIndex,
+    // Ix2,
+    // NdIndex,
 };
 
 use ndarray_numeric::{
@@ -20,7 +20,7 @@ use ndarray_numeric::{
     F64LatLngViewMut,
     F64LatLngArray,
     F64LatLngArcArray,
-    F64LatLngArrayView,
+    // F64LatLngArrayView,
     F64LatLngArrayViewMut,
 };
 

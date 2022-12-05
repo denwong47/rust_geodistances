@@ -3,9 +3,9 @@ use std::ops::Index;
 
 use ndarray::{
     Array1,
-    Ix1,
-    Ix2,
-    NdIndex,
+    // Ix1,
+    // Ix2,
+    // NdIndex,
 };
 
 use super::config::{
@@ -24,9 +24,9 @@ use ndarray_numeric::{
     ArrayWithF64Methods,
     ArrayWithF64PartialOrd,
     // ArrayWithF64AngularMethods,
-    ArrayWithF64LatLngMethods,
+    // ArrayWithF64LatLngMethods,
     F64Array1,
-    F64LatLng,
+    // F64LatLng,
     F64LatLngArray,
 };
 

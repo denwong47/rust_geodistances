@@ -1,13 +1,13 @@
 use std::f64::consts::PI;
 
-use crate::data::structs::LatLng;
-
-use crate::geodistances::traits::{
+use super::traits::{
+    LatLng,
+    LatLngArray,
     CalculateDistance,
     CheckDistance,
     OffsetByVector
 };
-use crate::geodistances::config::{
+use super::config::{
     EPS,
     ELLIPSE_WGS84_A,
     ELLIPSE_WGS84_B,
