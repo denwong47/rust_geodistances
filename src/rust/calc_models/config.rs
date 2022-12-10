@@ -5,4 +5,4 @@ pub const ELLIPSE_WGS84_A:f64 = 6378.137;
 pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
 pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
 
-pub const EPS:f64    = 1e-12;
+pub static EPS:f64    = 1e-12;

@@ -1,5 +1,19 @@
 use std::f64::consts::PI;
 
+use ndarray::{
+    Array1,
+};
+use ndarray_numeric::{
+    F64Array,
+    F64Array1,
+    F64LatLngArray,
+
+    ArrayWithF64Methods,
+    ArrayWithF64AngularMethods,
+    ArrayWithF64LatLngMethods,
+    ArrayWithF64PartialOrd,
+};
+
 use super::traits::{
     LatLng,
     LatLngArray,
@@ -27,160 +41,161 @@ pub struct Vincenty;
 impl CalculateDistance for Vincenty {
     #[allow(non_snake_case)]
     fn distance(
-        s:&LatLng,
-        e:&LatLng,
-    )->Option<f64> {
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+    ) -> F64Array1 {
         let eps:f64 = (2 as f64).powi(-52);
 
         // Discard calculation if latitude doesn't make any sense
-        if -90. < s.lat && s.lat < 90. && -90. < e.lat && e.lat < 90. {
-            if (s.lat-e.lat).abs() <= eps && (s.lng-e.lng).abs() <= eps {
-                return Some(0.)
-            }
+        let (s_lat, s_lng) = (s[0], s[1]);
+        let (s_lat_r, s_lng_r) = (s_lat * PI / 180., s_lng * PI /180.);
 
-            let (s_lat_r, s_lng_r) = s.as_rad();
-            let (e_lat_r, e_lng_r) = e.as_rad();
+        let e_latlng_r = e.to_rad();
+        let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
 
-            let diff_lng_r = e_lng_r - s_lng_r;
-            let tan_reduced_s_lat_r = (1.-ELLIPSE_WGS84_F) * s_lat_r.tan();
-            let cos_reduced_s_lat_r = 1. / (1.+tan_reduced_s_lat_r.powi(2)).sqrt();
-            let sin_reduced_s_lat_r = tan_reduced_s_lat_r * cos_reduced_s_lat_r;
+        let diff_lng_r = &e_lng_r - s_lng_r;
+        let tan_reduced_s_lat_r = (1.-ELLIPSE_WGS84_F) * s_lat_r.tan();
+        let cos_reduced_s_lat_r = (tan_reduced_s_lat_r.powi(2) + 1.).sqrt().powi(-1);
+        let sin_reduced_s_lat_r = tan_reduced_s_lat_r * cos_reduced_s_lat_r;
 
-            let tan_reduced_e_lat_r = (1.-ELLIPSE_WGS84_F) * e_lat_r.tan();
-            let cos_reduced_e_lat_r = 1. / (1.+tan_reduced_e_lat_r.powi(2)).sqrt();
-            let sin_reduced_e_lat_r = tan_reduced_e_lat_r * cos_reduced_e_lat_r;
+        let tan_reduced_e_lat_r = (1.-ELLIPSE_WGS84_F) * e_lat_r.tan();
+        let cos_reduced_e_lat_r = (tan_reduced_e_lat_r.powi(2) + 1.).sqrt().powi(-1);
+        let sin_reduced_e_lat_r = tan_reduced_e_lat_r * cos_reduced_e_lat_r;
 
-            let mut _lambda:f64 = diff_lng_r;
-            let mut _lambda_dash:f64 = 0.;
+        let mut _lambda:F64Array1 = diff_lng_r;
+        let mut _lambda_dash:F64Array1 = _lambda*0.;
 
-            let mut sin_lng_r:f64 = 0.;
-            let mut cos_lng_r:f64 = 0.;
-            drop(&sin_lng_r);
-            drop(&cos_lng_r);
+        let mut sin_lng_r:F64Array1 = _lambda*0.;
+        let mut cos_lng_r:F64Array1 = _lambda*0.;
 
-            let antipodal = diff_lng_r > PI/2. || (s_lat_r - e_lat_r).abs() > PI/2.;
+        // Does ndarray does not implement ||
+        // but BitOr on bool is the same as || so | is correct here.
+        let antipodal:Array1<bool> = (diff_lng_r.gt(&(PI/2.))) | ((&e_lat_r - s_lat_r).abs().gt(&(PI/2.)));
 
-            let mut ang_dist:f64 = if antipodal { PI } else {0.};
-            let mut sin_ang_dist:f64 = 0.;
-            let mut cos_ang_dist:f64 = if antipodal { -1. } else { 1. };
+        let mut ang_dist:F64Array1 = antipodal.map(|b| if *b {PI} else {0.});
+        let mut sin_ang_dist:F64Array1 = ang_dist*0.;
+        let mut cos_ang_dist:F64Array1 = antipodal.map(|b| if *b {-1.} else {1.});
 
-            let mut sin_azimuth_of_geodesic_at_equator:f64 = 0.;
-            let mut cos_2_ang_dist_from_equator_bisect:f64 = 0.;
-            let mut cos_sq_azimuth_of_geodesic_at_equator:f64 = 0.;
+        let mut sin_azimuth_of_geodesic_at_equator:f64 = 0.;
+        let mut cos_2_ang_dist_from_equator_bisect:f64 = 0.;
+        let mut cos_sq_azimuth_of_geodesic_at_equator:f64 = 0.;
 
-            // Dropping a useless reference.
-            // Just to get around the compiler "value never used" check.
-            drop(&sin_azimuth_of_geodesic_at_equator);
+        // Dropping a useless reference.
+        // Just to get around the compiler "value never used" check.
+        drop(&sin_lng_r);
+        drop(&cos_lng_r);
+        drop(&sin_azimuth_of_geodesic_at_equator);
 
-            for _ in 0..ITERATIONS {
-                sin_lng_r = _lambda.sin();
-                cos_lng_r = _lambda.cos();
+        // TODO vectorize this check
+        // e_lat, e_lng does not exist yet
+        // if (-e_lat+s_lat).abs() <= eps && (-e_lng+s_lng).abs() <= eps {
+        //     return Some(0.)
+        // }
 
-                let sin_sq_ang_dist = {
-                    (cos_reduced_e_lat_r*sin_lng_r).powi(2)
-                    + (
-                        cos_reduced_s_lat_r*sin_reduced_e_lat_r
-                        - sin_reduced_s_lat_r*cos_reduced_e_lat_r*cos_lng_r
-                    ).powi(2)
-                };
+        for _ in 0..ITERATIONS {
+            sin_lng_r = _lambda.sin();
+            cos_lng_r = _lambda.cos();
 
-                if sin_sq_ang_dist.abs() < 1e-24 { break }
-
-                sin_ang_dist = sin_sq_ang_dist.sqrt();
-                cos_ang_dist = {
-                    sin_reduced_s_lat_r*sin_reduced_e_lat_r
-                    + cos_reduced_s_lat_r*cos_reduced_e_lat_r*cos_lng_r
-                };
-
-                ang_dist = sin_ang_dist.atan2(cos_ang_dist);
-
-                sin_azimuth_of_geodesic_at_equator = {
-                    cos_reduced_s_lat_r*cos_reduced_e_lat_r*sin_lng_r/sin_ang_dist
-                };
-
-                cos_sq_azimuth_of_geodesic_at_equator = {
-                    1. - sin_azimuth_of_geodesic_at_equator.powi(2)
-                };
-
-                cos_2_ang_dist_from_equator_bisect = {
-                    if cos_sq_azimuth_of_geodesic_at_equator.abs() > eps {
-                        cos_ang_dist - 2.*sin_reduced_s_lat_r*sin_reduced_e_lat_r/cos_sq_azimuth_of_geodesic_at_equator
-                    } else {
-                        0.
-                    }
-                };
-
-                let _c = {
-                    ELLIPSE_WGS84_F / 16.
-                    * cos_sq_azimuth_of_geodesic_at_equator
-                    * (4.+ELLIPSE_WGS84_F*(4.-3.*cos_sq_azimuth_of_geodesic_at_equator))
-                };
-
-                _lambda_dash = _lambda;
-
-                _lambda = {
-                    diff_lng_r + (1.-_c) * ELLIPSE_WGS84_F
-                    * sin_azimuth_of_geodesic_at_equator
-                    * (ang_dist + _c*sin_ang_dist*(
-                        cos_2_ang_dist_from_equator_bisect
-                        +_c*cos_ang_dist*(
-                            -1.
-                            +2.*cos_2_ang_dist_from_equator_bisect.powi(2)
-                        )
-                    ))
-                };
-
-                if (_lambda-_lambda_dash).abs() <= EPS { break }
-            }
-
-            let _uSq = cos_sq_azimuth_of_geodesic_at_equator * (
-                ELLIPSE_WGS84_A.powi(2) - ELLIPSE_WGS84_B.powi(2)
-            ) / ELLIPSE_WGS84_B.powi(2);
-
-            let _a = 1.+_uSq/16384.*(4096.+_uSq*(-768.+_uSq*(320.-175.*_uSq)));
-            let _b = _uSq/1024. * (256.+_uSq*(-128.+_uSq*(74.-47.*_uSq)));
-
-            let delta_ang_dist = {
-                _b*sin_ang_dist*(
-                    cos_2_ang_dist_from_equator_bisect
-                    + _b/4.*(
-                        cos_ang_dist*(
-                            -1.+2.*cos_2_ang_dist_from_equator_bisect.powi(2)
-                        )
-                        - _b/6.*cos_2_ang_dist_from_equator_bisect*(
-                            -3.+4.*sin_ang_dist.powi(2)
-                        )*(
-                            -3.+4.*cos_2_ang_dist_from_equator_bisect.powi(2)
-                        )
-                    )
-                )
+            let sin_sq_ang_dist = {
+                (cos_reduced_e_lat_r*sin_lng_r).powi(2)
+                + (
+                    cos_reduced_s_lat_r*sin_reduced_e_lat_r
+                    - sin_reduced_s_lat_r*cos_reduced_e_lat_r*cos_lng_r
+                ).powi(2)
             };
 
-            return Some(ELLIPSE_WGS84_B*_a*(ang_dist-delta_ang_dist))
-        } else {
-            return None
+            // Start vectorizing here?
+            if sin_sq_ang_dist.abs().lt(1e-24) { break }
+
+            sin_ang_dist = sin_sq_ang_dist.sqrt();
+            cos_ang_dist = {
+                sin_reduced_s_lat_r*sin_reduced_e_lat_r
+                + cos_reduced_s_lat_r*cos_reduced_e_lat_r*cos_lng_r
+            };
+
+            ang_dist = sin_ang_dist.atan2(cos_ang_dist);
+
+            sin_azimuth_of_geodesic_at_equator = {
+                cos_reduced_s_lat_r*cos_reduced_e_lat_r*sin_lng_r/sin_ang_dist
+            };
+
+            cos_sq_azimuth_of_geodesic_at_equator = {
+                1. - sin_azimuth_of_geodesic_at_equator.powi(2)
+            };
+
+            cos_2_ang_dist_from_equator_bisect = {
+                if cos_sq_azimuth_of_geodesic_at_equator.abs() > eps {
+                    cos_ang_dist - 2.*sin_reduced_s_lat_r*sin_reduced_e_lat_r/cos_sq_azimuth_of_geodesic_at_equator
+                } else {
+                    0.
+                }
+            };
+
+            let _c = {
+                ELLIPSE_WGS84_F / 16.
+                * cos_sq_azimuth_of_geodesic_at_equator
+                * (4.+ELLIPSE_WGS84_F*(4.-3.*cos_sq_azimuth_of_geodesic_at_equator))
+            };
+
+            _lambda_dash = _lambda;
+
+            _lambda = {
+                diff_lng_r + (1.-_c) * ELLIPSE_WGS84_F
+                * sin_azimuth_of_geodesic_at_equator
+                * (ang_dist + _c*sin_ang_dist*(
+                    cos_2_ang_dist_from_equator_bisect
+                    +_c*cos_ang_dist*(
+                        -1.
+                        +2.*cos_2_ang_dist_from_equator_bisect.powi(2)
+                    )
+                ))
+            };
+
+            if (_lambda-_lambda_dash).abs() <= EPS { break }
         }
+
+        let _uSq = cos_sq_azimuth_of_geodesic_at_equator * (
+            ELLIPSE_WGS84_A.powi(2) - ELLIPSE_WGS84_B.powi(2)
+        ) / ELLIPSE_WGS84_B.powi(2);
+
+        let _a = 1.+_uSq/16384.*(4096.+_uSq*(-768.+_uSq*(320.-175.*_uSq)));
+        let _b = _uSq/1024. * (256.+_uSq*(-128.+_uSq*(74.-47.*_uSq)));
+
+        let delta_ang_dist = {
+            _b*sin_ang_dist*(
+                cos_2_ang_dist_from_equator_bisect
+                + _b/4.*(
+                    cos_ang_dist*(
+                        -1.+2.*cos_2_ang_dist_from_equator_bisect.powi(2)
+                    )
+                    - _b/6.*cos_2_ang_dist_from_equator_bisect*(
+                        -3.+4.*sin_ang_dist.powi(2)
+                    )*(
+                        -3.+4.*cos_2_ang_dist_from_equator_bisect.powi(2)
+                    )
+                )
+            )
+        };
+
+        return (ang_dist-delta_ang_dist)*ELLIPSE_WGS84_B*_a
     }
 }
 impl CheckDistance for Vincenty {
     fn within_distance(
-        s:&LatLng,
-        e:&LatLng,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
         distance:f64,
-    )->bool {
-        return match Self::distance(s, e){
-            Some(measured) => measured <= distance,
-            None => false,
-        }
+    ) -> Array1<bool> {
+        return Self::distance(s, e).le(&distance);
     }
 }
 impl OffsetByVector for Vincenty {
     #[allow(non_snake_case)]
     fn offset(
-        s:&LatLng,
+        s:&dyn LatLngArray,
         distance:f64,
         bearing:f64,
-    )->Option<LatLng> {
+    ) -> F64LatLngArray {
         let bearing_r = bearing / 180. * PI;
 
         let (s_lat_r, s_lng_r) = s.as_rad();
