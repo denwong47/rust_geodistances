@@ -25,6 +25,7 @@ use ndarray_numeric::{
     ArrayWithF64PartialOrd,
     // ArrayWithF64AngularMethods,
     // ArrayWithF64LatLngMethods,
+    BoolArray1,
     F64Array1,
     // F64LatLng,
     F64LatLngArray,
@@ -106,7 +107,7 @@ impl CheckDistance for Haversine {
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:f64,
-    ) -> Array1<bool> {
+    ) -> BoolArray1 {
         return Self::distance(s, e).le(&distance);
     }
 }

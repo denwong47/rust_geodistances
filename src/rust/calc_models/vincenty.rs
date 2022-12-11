@@ -4,14 +4,16 @@ use ndarray::{
     Array1,
 };
 use ndarray_numeric::{
-    F64Array,
-    F64Array1,
-    F64LatLngArray,
-
     ArrayWithF64Methods,
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
     ArrayWithF64PartialOrd,
+
+    BoolArray1,
+
+    F64Array,
+    F64Array1,
+    F64LatLngArray,
 };
 
 use super::traits::{
@@ -70,7 +72,7 @@ impl CalculateDistance for Vincenty {
 
         // Does ndarray does not implement ||
         // but BitOr on bool is the same as || so | is correct here.
-        let antipodal:Array1<bool> = (diff_lng_r.gt(&(PI/2.))) | ((&e_lat_r - s_lat_r).abs().gt(&(PI/2.)));
+        let antipodal:BoolArray1 = (diff_lng_r.gt(&(PI/2.))) | ((&e_lat_r - s_lat_r).abs().gt(&(PI/2.)));
 
         let mut ang_dist:F64Array1 = antipodal.map(|b| if *b {PI} else {0.});
         let mut sin_ang_dist:F64Array1 = ang_dist*0.;
@@ -186,7 +188,7 @@ impl CheckDistance for Vincenty {
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:f64,
-    ) -> Array1<bool> {
+    ) -> BoolArray1 {
         return Self::distance(s, e).le(&distance);
     }
 }
