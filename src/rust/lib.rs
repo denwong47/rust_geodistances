@@ -51,7 +51,7 @@ fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distances_from_point, m)?)?;
 
     m.add_class::<py_compatibility::enums::CalculationMethod>()?;
-    
+
     Ok(())
 }
 
