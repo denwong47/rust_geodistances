@@ -25,7 +25,7 @@ mod calc_models;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn distance_from_point(
+fn distances_from_point(
     start: (f64, f64),
     dest:  Vec<[f64; 2]>,
     method: Option<&py_compatibility::enums::CalculationMethod>,
@@ -35,7 +35,12 @@ fn distance_from_point(
 
     return Ok(
         // This generic doesn't even matter.
-        CalculationInterface::<&F64Array1>::distance(method.unwrap(), &s, &e)
+        CalculationInterface::<&F64Array1>::distance(
+            method.unwrap_or(
+                &py_compatibility::enums::CalculationMethod::default()
+            ),
+            &s, &e
+        )
         .into_raw_vec()
     );
 }
@@ -43,7 +48,7 @@ fn distance_from_point(
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
+    m.add_function(wrap_pyfunction!(distances_from_point, m)?)?;
 
     m.add_class::<py_compatibility::enums::CalculationMethod>()?;
     

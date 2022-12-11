@@ -33,6 +33,9 @@ pub enum CalculationMethod {
     HAVERSINE,
     // VINCENTY,
 }
+impl Default for CalculationMethod {
+    fn default() -> Self { Self::HAVERSINE }
+}
 
 pub trait CalculationInterface<T> {
     // No Generics on this one.
