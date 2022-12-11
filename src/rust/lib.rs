@@ -122,6 +122,7 @@ mod test_distance {
 
     use super::calc_models::haversine::Haversine;
 
+    #[allow(non_upper_case_globals)]
     static latlng_array: [[f64; 2]; 32] = [
         [-57.97178750223649, 131.42756478116718],
         [67.54068754544909, 52.576877730094196],
