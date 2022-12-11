@@ -3,24 +3,50 @@ use duplicate::duplicate_item;
 
 use pyo3::prelude::*;
 
+use ndarray::{
+    arr1,
+    arr2,
+};
+
 #[allow(unused_imports)]
 use ndarray_numeric::{
     F64Array,
+    F64Array1,
+    F64LatLngArray,
     ArrayWithF64Methods,
+};
+
+mod py_compatibility;
+use py_compatibility::{
+    CalculationInterface,
 };
 
 mod calc_models;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn func(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+fn distance_from_point(
+    start: (f64, f64),
+    dest:  Vec<[f64; 2]>,
+    method: Option<&py_compatibility::enums::CalculationMethod>,
+) -> PyResult<Vec<f64>> {
+    let s = arr1(&[start.0, start.1]);
+    let e = arr2(&dest);
+
+    return Ok(
+        // This generic doesn't even matter.
+        CalculationInterface::<&F64Array1>::distance(method.unwrap(), &s, &e)
+        .into_raw_vec()
+    );
 }
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(func, m)?)?;
+    m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
+
+    m.add_class::<py_compatibility::enums::CalculationMethod>()?;
+    
     Ok(())
 }
 
