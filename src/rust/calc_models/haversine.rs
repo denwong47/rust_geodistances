@@ -1,9 +1,11 @@
 use std::f64::consts::PI;
 use std::ops::Index;
 
+use duplicate::duplicate_item;
+
 use ndarray::{
     Array1,
-    // Ix1,
+    Ix1,
     // Ix2,
     // NdIndex,
 };
@@ -22,11 +24,15 @@ use super::traits::{
 
 use ndarray_numeric::{
     ArrayWithF64Methods,
+    ArrayWithF64Atan2Methods,
     ArrayWithF64PartialOrd,
-    // ArrayWithF64AngularMethods,
-    // ArrayWithF64LatLngMethods,
+    ArrayWithF64AngularMethods,
+    ArrayWithF64LatLngMethods,
     BoolArray1,
     F64Array1,
+    F64ArcArray1,
+    F64ArrayView,
+    F64ArrayViewMut,
     // F64LatLng,
     F64LatLngArray,
 };
@@ -60,15 +66,23 @@ impl CalculateDistance for Haversine {
     }
 }
 
-impl OffsetByVector for Haversine {
+#[duplicate_item(
+    VectorType                      Generics;
+    [ f64 ]                         [];
+    [ &F64Array1 ]                  [];
+    [ &F64ArcArray1 ]               [];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
+)]
+impl<Generics> OffsetByVector<VectorType> for Haversine {
     fn offset(
         s:&dyn LatLngArray,
-        distance:f64,
-        bearing:f64,
+        distance:VectorType,
+        bearing:VectorType,
     ) -> F64LatLngArray {
         let bearing_r = bearing / 180. * PI;
 
-        let ang_dist = distance/RADIUS;
+        let ang_dist = distance / RADIUS;
         let s_latlng_r= s.to_rad();
         let (s_lat_r, s_lng_r) = (
             s_latlng_r.column(0), s_latlng_r.column(1)
@@ -84,7 +98,7 @@ impl OffsetByVector for Haversine {
         let e_lng_r = {
             &s_lng_r + (
                 bearing_r.sin()*ang_dist.sin()*s_lat_r.cos()
-            ).atan2_arr(
+            ).atan2(
                 ang_dist.cos()-s_lat_r.sin()*e_lat_r.sin()
             )
         };
@@ -98,16 +112,27 @@ impl OffsetByVector for Haversine {
         e_latlng_r.push_column(e_lat_r.view()).unwrap();
         e_latlng_r.push_column(e_lng_r.view()).unwrap();
 
+        e_latlng_r = e_latlng_r.to_dec();
+        e_latlng_r.normalize();
+
         return e_latlng_r;
     }
 }
 
-impl CheckDistance for Haversine {
+#[duplicate_item(
+    VectorType                      Generics;
+    [ f64 ]                         [];
+    [ &F64Array1 ]                  [];
+    [ &F64ArcArray1 ]               [];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
+)]
+impl<Generics> CheckDistance<VectorType> for Haversine {
     fn within_distance(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        distance:f64,
+        distance:VectorType,
     ) -> BoolArray1 {
-        return Self::distance(s, e).le(&distance);
+        return (Self::distance(s, e) - distance).le(&0.);
     }
 }

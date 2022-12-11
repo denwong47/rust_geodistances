@@ -51,20 +51,21 @@ pub trait CalculateDistance {
         e:&dyn LatLngArray,
     ) -> F64Array1;
 }
-
-pub trait OffsetByVector:CalculateDistance {
+/// Generic T here, could be scalar f64 or F64Array.
+pub trait OffsetByVector<T>:CalculateDistance {
     fn offset(
         s:&dyn LatLngArray,
-        distance:f64,
-        bearing:f64,
+        distance:T,
+        bearing:T,
     ) -> F64LatLngArray;
 }
 
 //  CheckDistance REQUIRES OffsetByVector
-pub trait CheckDistance:OffsetByVector {
+/// Generic T here, could be scalar f64 or F64Array.
+pub trait CheckDistance<T>:OffsetByVector<T> {
     fn within_distance(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        distance:f64,
+        distance:T,
     ) -> Array1<bool>;
 }
