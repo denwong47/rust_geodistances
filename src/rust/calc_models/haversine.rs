@@ -28,7 +28,11 @@ use ndarray_numeric::{
     ArrayWithF64PartialOrd,
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
+
     BoolArray1,
+    ArrayWithBoolIterMethods,
+    ArrayWithBoolMaskMethods,
+
     F64Array1,
     F64ArcArray1,
     F64ArrayView,

@@ -5,14 +5,19 @@ use ndarray::{
 };
 use ndarray_numeric::{
     ArrayWithF64Methods,
+    ArrayWithF64Atan2Methods,
+    ArrayWithF64PartialOrd,
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
-    ArrayWithF64PartialOrd,
 
     BoolArray1,
 
     F64Array,
     F64Array1,
+    F64ArcArray1,
+    F64ArrayView,
+    F64ArrayViewMut,
+    // F64LatLng,
     F64LatLngArray,
 };
 
@@ -183,7 +188,16 @@ impl CalculateDistance for Vincenty {
         return (ang_dist-delta_ang_dist)*ELLIPSE_WGS84_B*_a
     }
 }
-impl CheckDistance for Vincenty {
+
+#[duplicate_item(
+    VectorType                      Generics;
+    [ f64 ]                         [];
+    [ &F64Array1 ]                  [];
+    [ &F64ArcArray1 ]               [];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
+)]
+impl<Generics> CheckDistance<VectorType> for Vincenty {
     fn within_distance(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -192,7 +206,17 @@ impl CheckDistance for Vincenty {
         return Self::distance(s, e).le(&distance);
     }
 }
-impl OffsetByVector for Vincenty {
+
+
+#[duplicate_item(
+    VectorType                      Generics;
+    [ f64 ]                         [];
+    [ &F64Array1 ]                  [];
+    [ &F64ArcArray1 ]               [];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
+)]
+impl<Generics> CheckDistance<VectorType> for Vincenty {
     #[allow(non_snake_case)]
     fn offset(
         s:&dyn LatLngArray,
