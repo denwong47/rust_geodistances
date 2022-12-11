@@ -76,9 +76,9 @@ impl CalculateDistance for Vincenty {
         let mut sin_ang_dist:F64Array1 = ang_dist*0.;
         let mut cos_ang_dist:F64Array1 = antipodal.map(|b| if *b {-1.} else {1.});
 
-        let mut sin_azimuth_of_geodesic_at_equator:f64 = 0.;
-        let mut cos_2_ang_dist_from_equator_bisect:f64 = 0.;
-        let mut cos_sq_azimuth_of_geodesic_at_equator:f64 = 0.;
+        let mut sin_azimuth_of_geodesic_at_equator:F64Array1 = cos_reduced_e_lat_r*0.;
+        let mut cos_2_ang_dist_from_equator_bisect:F64Array1 = cos_reduced_e_lat_r*0.;
+        let mut cos_sq_azimuth_of_geodesic_at_equator:F64Array1 = cos_reduced_e_lat_r*0.;
 
         // Dropping a useless reference.
         // Just to get around the compiler "value never used" check.
@@ -105,18 +105,19 @@ impl CalculateDistance for Vincenty {
             };
 
             // Start vectorizing here?
+            // _lambda.mapv_inplace
             if sin_sq_ang_dist.abs().lt(1e-24) { break }
 
             sin_ang_dist = sin_sq_ang_dist.sqrt();
             cos_ang_dist = {
-                sin_reduced_s_lat_r*sin_reduced_e_lat_r
-                + cos_reduced_s_lat_r*cos_reduced_e_lat_r*cos_lng_r
+                sin_reduced_e_lat_r*sin_reduced_s_lat_r
+                + cos_reduced_e_lat_r*cos_lng_r*cos_reduced_s_lat_r
             };
 
-            ang_dist = sin_ang_dist.atan2(cos_ang_dist);
+            ang_dist = sin_ang_dist.atan2_arr(cos_ang_dist);
 
             sin_azimuth_of_geodesic_at_equator = {
-                cos_reduced_s_lat_r*cos_reduced_e_lat_r*sin_lng_r/sin_ang_dist
+                cos_reduced_e_lat_r*sin_lng_r*cos_reduced_s_lat_r/sin_ang_dist
             };
 
             cos_sq_azimuth_of_geodesic_at_equator = {
