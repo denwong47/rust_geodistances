@@ -17,10 +17,11 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.17", features = ["extension-module"] }
 duplicate = "0.4"
-ndarray = "0.15"
+ndarray = { version = "0.15", features = ["rayon"] }
 num-format = "0.4"
-timeit = "0.1"
+rayon = "1.6"
 strum = { version = "0.24", features = ["derive"] }
+timeit = "0.1"
 
 ndarray_numeric = {git = "https://github.com/denwong47/ndarray_numeric.git"}
 

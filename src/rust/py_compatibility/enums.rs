@@ -9,6 +9,7 @@ use pyo3::prelude::*;
 
 use ndarray_numeric::{
     F64Array1,
+    F64Array2,
     F64ArcArray1,
     F64ArrayView,
     F64ArrayViewMut,
@@ -39,11 +40,19 @@ impl Default for CalculationMethod {
 
 pub trait CalculationInterface<T> {
     // No Generics on this one.
-    fn distance(
+    fn distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
     ) -> F64Array1;
+
+    fn distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> F64Array2;
 
     fn offset(
         &self,
@@ -70,17 +79,32 @@ pub trait CalculationInterface<T> {
 )]
 impl<Generics> CalculationInterface<VectorType> for CalculationMethod {
     // No Generics on this one.
-    fn distance(
+    fn distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
     ) -> F64Array1 {
         let f = match self {
+            Self::HAVERSINE => Haversine::distance_from_point,
+            // Self::VINCENTY => Vincenty::distance_from_point,
+        };
+
+        return f(s, e);
+    }
+
+    fn distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> F64Array2 {
+        let f = match self {
             Self::HAVERSINE => Haversine::distance,
             // Self::VINCENTY => Vincenty::distance,
         };
 
-        return f(s, e);
+        return f(s, e, shape, workers);
     }
 
     fn offset(

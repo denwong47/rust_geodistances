@@ -15,6 +15,8 @@ use ndarray_numeric::{
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
     F64Array1,
+    F64Array2,
+    F64ArrayView,
     F64LatLng,
     F64LatLngView,
     F64LatLngViewMut,
@@ -46,10 +48,31 @@ impl LatLng for __latlng_type__ {}
 impl LatLngArray for __latlngarray_type__ {}
 
 pub trait CalculateDistance {
-    fn distance(
+    fn distance_from_point_rad(
+        s_lat_r:&f64,
+        s_lng_r:&f64,
+        e_lat_r:&F64ArrayView<'_, Ix1>,
+        e_lng_r:&F64ArrayView<'_, Ix1>,
+    ) -> F64Array1;
+
+    fn distance_rad(
+        s_lat_r:&F64ArrayView<'_, Ix1>,
+        s_lng_r:&F64ArrayView<'_, Ix1>,
+        e_lat_r:&F64ArrayView<'_, Ix1>,
+        e_lng_r:&F64ArrayView<'_, Ix1>,
+    ) -> F64Array2;
+
+    fn distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
     ) -> F64Array1;
+
+    fn distance(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> F64Array2;
 }
 /// Generic T here, could be scalar f64 or F64Array.
 pub trait OffsetByVector<T>:CalculateDistance {

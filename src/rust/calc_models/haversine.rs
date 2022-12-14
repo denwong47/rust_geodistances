@@ -4,14 +4,19 @@ use std::ops::Index;
 use duplicate::duplicate_item;
 
 use ndarray::{
+    Axis,
     Array1,
     Ix1,
     // Ix2,
     // NdIndex,
+    s,
+    Zip,
 };
+use rayon::prelude::*;
 
 use super::config::{
     RADIUS,
+    workers_count,
 };
 
 use super::traits::{
@@ -34,6 +39,7 @@ use ndarray_numeric::{
     ArrayWithBoolMaskMethods,
 
     F64Array1,
+    F64Array2,
     F64ArcArray1,
     F64ArrayView,
     F64ArrayViewMut,
@@ -47,7 +53,44 @@ use ndarray_numeric::{
 /// Adapted from https://towardsdatascience.com/better-parallelization-with-numba-3a41ca69452e
 pub struct Haversine;
 impl CalculateDistance for Haversine {
-    fn distance(
+    /// Internal function
+    fn distance_from_point_rad(
+        s_lat_r:&f64,
+        s_lng_r:&f64,
+        e_lat_r:&F64ArrayView<'_, Ix1>,
+        e_lng_r:&F64ArrayView<'_, Ix1>,
+    ) -> F64Array1 {
+        return {
+            // bear in mind that e_lat_r is an array while s_lat_r is f64
+            ((e_lat_r - *s_lat_r)/2.).sin().powi(2)
+            + s_lat_r.cos()*e_lat_r.cos()
+            * ((e_lng_r - *s_lng_r)/2.).sin().powi(2)
+        }.sqrt().asin() * 2.;
+    }
+
+    fn distance_rad(
+        s_lat_r:&F64ArrayView<'_, Ix1>,
+        s_lng_r:&F64ArrayView<'_, Ix1>,
+        e_lat_r:&F64ArrayView<'_, Ix1>,
+        e_lng_r:&F64ArrayView<'_, Ix1>,
+    ) -> F64Array2 {
+        let mut results = F64Array2::zeros((0, e_lat_r.len()));
+
+        Zip::from(s_lat_r)
+            .and(s_lng_r)
+            .for_each(|lat, lng| {
+                results.push_row(
+                    Self::distance_from_point_rad(
+                        &lat, &lng,
+                        e_lat_r, e_lng_r
+                    ).view()
+                ).unwrap();
+            });
+
+        return results;
+    }
+
+    fn distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
     ) -> F64Array1 {
@@ -59,14 +102,45 @@ impl CalculateDistance for Haversine {
         let e_latlng_r = e.to_rad();
         let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
 
-        let d = {
-            // bear in mind that e_lat_r is an array while s_lat_r is f64
-            ((&e_lat_r - s_lat_r)/2.).sin().powi(2)
-            + s_lat_r.cos()*e_lat_r.cos()
-            * ((&e_lng_r - s_lng_r)/2.).sin().powi(2)
-        };
+        let d = Self::distance_from_point_rad(&s_lat_r, &s_lng_r, &e_lat_r, &e_lng_r);
 
-        return d.sqrt().asin() * 2. * RADIUS;
+        return d * RADIUS;
+    }
+
+    fn distance(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> F64Array2 {
+        let (s_latlng_r, e_latlng_r) = (s.to_rad(), e.to_rad());
+        let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
+
+        let workers: usize = workers.unwrap_or(workers_count());
+        let chunk_size: usize = (shape.0 as f32 / workers as f32).ceil() as usize;
+
+        let results = {
+            s_latlng_r.axis_chunks_iter(Axis(0), chunk_size)
+                     .into_par_iter()
+                     .map(| s_latlng_r_chunk | {
+                            let (s_lat_r, s_lng_r) = (s_latlng_r_chunk.column(0), s_latlng_r_chunk.column(1));
+
+                            Self::distance_rad(
+                                &s_lat_r, &s_lng_r,
+                                &e_lat_r, &e_lng_r,
+                            )
+                        }
+                     )
+                     .reduce(
+                        move || F64Array2::zeros((0, shape.1)),
+                        | mut a, b | {
+                            a.append(Axis(0), b.view()).unwrap();
+                            return a;
+                        }
+                     )
+        } * RADIUS;
+
+        return results;
     }
 }
 
@@ -137,6 +211,6 @@ impl<Generics> CheckDistance<VectorType> for Haversine {
         e:&dyn LatLngArray,
         distance:VectorType,
     ) -> BoolArray1 {
-        return (Self::distance(s, e) - distance).le(&0.);
+        return (Self::distance_from_point(s, e) - distance).le(&0.);
     }
 }
