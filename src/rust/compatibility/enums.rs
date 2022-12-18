@@ -1,7 +1,6 @@
 use duplicate::duplicate_item;
 
 use ndarray::{
-    Array1,
     Ix1,
 };
 

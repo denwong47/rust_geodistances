@@ -23,7 +23,12 @@ use compatibility::{
 
 mod calc_models;
 
-/// Formats the sum of two numbers as string.
+/// Calculates distances from `start` to each of `dest` using the `method` specified.
+///
+/// The distance calculation itself is not excessively expensive, but the conversion
+/// from Rust Vec<Vec<f64>> into PyList is.
+///
+/// Try using the other functions such as indices
 #[pyfunction]
 fn distance(
     start:  Vec<[f64; 2]>,
@@ -45,9 +50,8 @@ fn distance(
     )
 }
 
-/// Calculates distances from `start` to each of `dest` using the `method` specified.
-///
-/// The calculation of this method itself is not
+/// Calculates distances from the `start` point to each of `dest`
+/// using the `method` specified.
 #[pyfunction]
 fn distance_from_point(
     start: [f64; 2],
@@ -58,9 +62,87 @@ fn distance_from_point(
     let e = arr2(&dest);
 
     return Ok(
-        // This generic doesn't even matter.
         compatibility::func::distance_from_point(&s, &e, method)
                             .to_vec()
+    );
+}
+
+/// Return array of booleans whether the points, when mapped between the arrays.
+///
+///
+#[pyfunction]
+fn within_distance(
+    start:  Vec<[f64; 2]>,
+    dest:  Vec<[f64; 2]>,
+    distance: f64,
+    method: Option<&compatibility::enums::CalculationMethod>,
+    workers: Option<usize>,
+) -> PyResult<Vec<Vec<bool>>> {
+    let s = arr2(&start);
+    let e = arr2(&dest);
+
+    return Ok(
+        compatibility::func::within_distance(
+                                &s, &e,
+                                distance, method, workers
+                            )
+                            .to_vec()
+    );
+}
+
+#[pyfunction]
+fn within_distance_of_point(
+    start: [f64; 2],
+    dest:  Vec<[f64; 2]>,
+    distance: f64,
+    method: Option<&compatibility::enums::CalculationMethod>,
+) -> PyResult<Vec<bool>> {
+    let s = arr1(&start);
+    let e = arr2(&dest);
+
+    return Ok(
+        compatibility::func::within_distance_of_point(
+                                &s, &e,
+                                distance, method
+                            )
+                            .to_vec()
+    );
+}
+
+#[pyfunction]
+fn indices_within_distance(
+    start:  Vec<[f64; 2]>,
+    dest:  Vec<[f64; 2]>,
+    distance: f64,
+    method: Option<&compatibility::enums::CalculationMethod>,
+    workers: Option<usize>,
+) -> PyResult<Vec<Vec<usize>>> {
+    let s = arr2(&start);
+    let e = arr2(&dest);
+
+    return Ok(
+        compatibility::func::indices_within_distance(
+                                &s, &e,
+                                distance, method, workers
+                            )
+    );
+}
+
+#[pyfunction]
+fn indices_within_distance_of_point(
+    start: [f64; 2],
+    dest:  Vec<[f64; 2]>,
+    distance: f64,
+    method: Option<&compatibility::enums::CalculationMethod>,
+) -> PyResult<Vec<usize>> {
+    let s = arr1(&start);
+    let e = arr2(&dest);
+
+    return Ok(
+        compatibility::func::indices_within_distance_of_point(
+                                &s, &e,
+                                distance, method
+                            )
     );
 }
 
@@ -69,6 +151,12 @@ fn distance_from_point(
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(distance, m)?)?;
+
+    m.add_function(wrap_pyfunction!(within_distance_of_point, m)?)?;
+    m.add_function(wrap_pyfunction!(within_distance, m)?)?;
+
+    m.add_function(wrap_pyfunction!(indices_within_distance_of_point, m)?)?;
+    m.add_function(wrap_pyfunction!(indices_within_distance, m)?)?;
 
     m.add_class::<compatibility::enums::CalculationMethod>()?;
 

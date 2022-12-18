@@ -8,12 +8,7 @@ use ndarray::{
     Ix2,
 };
 use pyo3::{
-    Python,
     ToPyObject,
-};
-use pyo3::types::{
-    PyList,
-    PyTuple,
 };
 
 use ndarray_numeric::{
