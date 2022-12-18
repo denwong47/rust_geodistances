@@ -19,8 +19,8 @@ pub use func::{
     distance_from_point,
     within_distance,
     within_distance_of_point,
-    points_within_distance,
-    points_within_distance_of_point,
+    indices_within_distance,
+    indices_within_distance_of_point,
     offset,
     offset_from_point,
 };
