@@ -42,7 +42,7 @@ fn distance_from_point(
             ),
             &s, &e
         )
-        .into_raw_vec()
+        .to_vec()
     );
 }
 
