@@ -17,56 +17,24 @@ use ndarray_numeric::{
     ArrayWithF64Methods,
 };
 
-mod py_compatibility;
-use py_compatibility::{
-    CalculationInterface,
-};
+mod compatibility;
 
 mod calc_models;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn distance_from_point(
-    start: [f64; 2],
-    dest:  Vec<[f64; 2]>,
-    method: Option<&py_compatibility::enums::CalculationMethod>,
-) -> PyResult<Vec<f64>> {
-    let s = arr1(&start);
-    let e = arr2(&dest);
-
-    return Ok(
-        // This generic doesn't even matter.
-        CalculationInterface::<&F64Array1>::distance_from_point(
-            method.unwrap_or(
-                &py_compatibility::enums::CalculationMethod::default()
-            ),
-            &s, &e
-        )
-        .to_vec()
-    );
-}
-
-#[pyfunction]
 fn distance(
     start:  Vec<[f64; 2]>,
     dest:  Vec<[f64; 2]>,
-    method: Option<&py_compatibility::enums::CalculationMethod>,
+    method: Option<&compatibility::enums::CalculationMethod>,
     workers: Option<usize>,
 ) -> PyResult<Vec<Vec<f64>>> {
     let s = arr2(&start);
     let e = arr2(&dest);
 
-    let shape = (start.len(), dest.len());
-
-    let results = CalculationInterface::<&F64Array1>::distance(
-        method.unwrap_or(
-            &py_compatibility::enums::CalculationMethod::default()
-        ),
-        &s,
-        &e,
-        shape,
-        workers,
-    );
+    let results = {
+        compatibility::func::distance(&s, &e, method, workers)
+    };
 
     return Ok(
         // This generic doesn't even matter.
@@ -79,13 +47,32 @@ fn distance(
     )
 }
 
+/// Calculates distances from `start` to each of `dest` using the `method` specified.
+///
+/// The calculation of this method itself is not
+#[pyfunction]
+fn distance_from_point(
+    start: [f64; 2],
+    dest:  Vec<[f64; 2]>,
+    method: Option<&compatibility::enums::CalculationMethod>,
+) -> PyResult<Vec<f64>> {
+    let s = arr1(&start);
+    let e = arr2(&dest);
+
+    return Ok(
+        // This generic doesn't even matter.
+        compatibility::func::distance_from_point(&s, &e, method)
+                            .to_vec()
+    );
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(distance, m)?)?;
 
-    m.add_class::<py_compatibility::enums::CalculationMethod>()?;
+    m.add_class::<compatibility::enums::CalculationMethod>()?;
 
     Ok(())
 }
