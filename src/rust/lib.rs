@@ -18,6 +18,9 @@ use ndarray_numeric::{
 };
 
 mod compatibility;
+use compatibility::{
+    Array2ToVecVec,
+};
 
 mod calc_models;
 
@@ -37,13 +40,9 @@ fn distance(
     };
 
     return Ok(
-        // This generic doesn't even matter.
-        results
-        .axis_iter(Axis(0))
-        .map(
-            | row | row.to_vec()
-        )
-        .collect()
+        // This is not the vanilla ndarray::ArrayBase::Array2ToVecVec,
+        // but the two dimensional implementation in compatibility::conversions.
+        results.to_vec()
     )
 }
 

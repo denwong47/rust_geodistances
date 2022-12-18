@@ -1,9 +1,13 @@
 /// ==========================================
 ///  Command Line Arguments and stdin package
 /// ==========================================
+pub mod conversions;
 pub mod enums;
 pub mod func;
 
+pub use conversions::{
+    Array2ToVecVec,
+};
 
 pub use enums::{
     CalculationInterface,
