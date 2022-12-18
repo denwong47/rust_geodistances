@@ -35,6 +35,7 @@ use ndarray_numeric::{
     ArrayWithF64LatLngMethods,
 
     BoolArray1,
+    BoolArray2,
     ArrayWithBoolIterMethods,
     ArrayWithBoolMaskMethods,
 
@@ -145,18 +146,18 @@ impl CalculateDistance for Haversine {
 }
 
 #[duplicate_item(
-    VectorType                      Generics;
+    __vector_type__                 __impl_generics__;
     [ f64 ]                         [];
     [ &F64Array1 ]                  [];
     [ &F64ArcArray1 ]               [];
     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
-impl<Generics> OffsetByVector<VectorType> for Haversine {
-    fn offset(
+impl<__impl_generics__> OffsetByVector<__vector_type__> for Haversine {
+    fn offset_from_point(
         s:&dyn LatLngArray,
-        distance:VectorType,
-        bearing:VectorType,
+        distance:__vector_type__,
+        bearing:__vector_type__,
     ) -> F64LatLngArray {
         let bearing_r = bearing / 180. * PI;
 
@@ -198,19 +199,29 @@ impl<Generics> OffsetByVector<VectorType> for Haversine {
 }
 
 #[duplicate_item(
-    VectorType                      Generics;
+    __vector_type__                 __impl_generics__;
     [ f64 ]                         [];
     [ &F64Array1 ]                  [];
     [ &F64ArcArray1 ]               [];
     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
-impl<Generics> CheckDistance<VectorType> for Haversine {
-    fn within_distance(
+impl<__impl_generics__> CheckDistance<__vector_type__> for Haversine {
+    fn within_distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        distance:VectorType,
+        distance:__vector_type__,
     ) -> BoolArray1 {
         return (Self::distance_from_point(s, e) - distance).le(&0.);
+    }
+
+    fn within_distance(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance: __vector_type__,
+        shape: (usize, usize),
+        workers: Option<usize>,
+    ) -> BoolArray2 {
+        return (Self::distance(s, e, shape, workers) - distance).le(&0.);
     }
 }

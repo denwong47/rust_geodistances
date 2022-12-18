@@ -3,7 +3,6 @@ use std::ops::Index;
 use duplicate::duplicate_item;
 
 use ndarray::{
-    Array1,
     Dim,
     Ix,
     Ix1,
@@ -14,6 +13,8 @@ use ndarray::{
 use ndarray_numeric::{
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
+    BoolArray1,
+    BoolArray2,
     F64Array1,
     F64Array2,
     F64ArrayView,
@@ -76,7 +77,7 @@ pub trait CalculateDistance {
 }
 /// Generic T here, could be scalar f64 or F64Array.
 pub trait OffsetByVector<T>:CalculateDistance {
-    fn offset(
+    fn offset_from_point(
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
@@ -86,9 +87,24 @@ pub trait OffsetByVector<T>:CalculateDistance {
 //  CheckDistance REQUIRES OffsetByVector
 /// Generic T here, could be scalar f64 or F64Array.
 pub trait CheckDistance<T>:OffsetByVector<T> {
-    fn within_distance(
+    fn within_distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,
-    ) -> Array1<bool>;
+    ) -> BoolArray1;
+
+    fn within_distance(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+
+        // Only supports f64 for 2-dimensions:
+        // While this parameter allows for 1-dimensional arrays, which
+        // it ACTUALLY works, but the length of the array needs
+        // to match that of `e`, not `s` intuitively.
+        // We can probably change this to make it work with some `rows_mut`
+        // but currently this is in the backlog.
+        distance: T,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> BoolArray2;
 }

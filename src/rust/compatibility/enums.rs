@@ -8,6 +8,9 @@ use ndarray::{
 use pyo3::prelude::*;
 
 use ndarray_numeric::{
+    BoolArray1,
+    BoolArray2,
+
     F64Array1,
     F64Array2,
     F64ArcArray1,
@@ -39,6 +42,8 @@ impl Default for CalculationMethod {
 }
 
 pub trait CalculationInterface<T> {
+    type FnWithinDistance;
+
     // No Generics on this one.
     fn distance_from_point(
         &self,
@@ -61,23 +66,40 @@ pub trait CalculationInterface<T> {
         bearing:T,
     ) -> F64LatLngArray;
 
-    fn within_distance(
+    fn within_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,
-    ) -> Array1<bool>;
+    ) -> BoolArray1;
+
+    fn within_distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance:f64,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> BoolArray2;
 }
 
 #[duplicate_item(
-    VectorType                      Generics;
+    __vector_type__                 __impl_generics__;
     [ f64 ]                         [];
     [ &F64Array1 ]                  [];
     [ &F64ArcArray1 ]               [];
     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
-impl<Generics> CalculationInterface<VectorType> for CalculationMethod {
+impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMethod {
+    type FnWithinDistance = fn(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance:f64,
+        shape:(usize, usize),
+        workers:Option<usize>,
+    ) -> BoolArray2;
+
     // No Generics on this one.
     fn distance_from_point(
         &self,
@@ -110,28 +132,44 @@ impl<Generics> CalculationInterface<VectorType> for CalculationMethod {
     fn offset(
         &self,
         s:&dyn LatLngArray,
-        distance:VectorType,
-        bearing:VectorType,
+        distance:__vector_type__,
+        bearing:__vector_type__,
     ) -> F64LatLngArray {
         let f = match self {
-            Self::HAVERSINE => Haversine::offset,
-            // Self::VINCENTY => Vincenty::offset,
+            Self::HAVERSINE => Haversine::offset_from_point,
+            // Self::VINCENTY => Vincenty::offset_from_point,
         };
 
         return f(s, distance, bearing);
     }
 
-    fn within_distance(
+    fn within_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        distance:VectorType,
-    ) -> Array1<bool> {
+        distance: __vector_type__,
+    ) -> BoolArray1 {
         let f = match self {
+            Self::HAVERSINE => Haversine::within_distance_from_point,
+            // Self::VINCENTY => Vincenty::within_distance_from_point,
+        };
+
+        return f(s, e, distance);
+    }
+
+    fn within_distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance: f64, // Restrict to f64 here
+        shape: (usize, usize),
+        workers: Option<usize>,
+    ) -> BoolArray2 {
+        let f: Self::FnWithinDistance  = match self {
             Self::HAVERSINE => Haversine::within_distance,
             // Self::VINCENTY => Vincenty::within_distance,
         };
 
-        return f(s, e, distance);
+        return f(s, e, distance, shape, workers);
     }
 }

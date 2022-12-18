@@ -2,6 +2,8 @@
 // but uses ndarrays for all parameters and returns.
 
 use ndarray_numeric::{
+    BoolArray1,
+    BoolArray2,
     F64Array1,
     F64Array2,
     F64LatLng,
@@ -42,10 +44,22 @@ pub fn distance_from_point(
     );
 }
 
-pub fn within_distance() {
-
+/// This needs to be refined; there should be a filtering mechanism to
+/// remove unnecessary calculations.
+pub fn within_distance(
+    s: &F64LatLng,
+    e: &F64LatLngArray,
+    method: Option<&enums::CalculationMethod>,
+    distance: f64,
+) -> BoolArray1 {
+    return enums::CalculationInterface::<f64>::within_distance_from_point(
+        method.unwrap_or(
+            &enums::CalculationMethod::default()
+        ), s, e, distance)
 }
 
+/// This needs to be refined; there should be a filtering mechanism to
+/// remove unnecessary calculations.
 pub fn within_distance_of_point() {
 
 }

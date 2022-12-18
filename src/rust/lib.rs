@@ -6,7 +6,6 @@ use pyo3::prelude::*;
 use ndarray::{
     arr1,
     arr2,
-    Axis,
 };
 
 #[allow(unused_imports)]
@@ -310,7 +309,11 @@ mod test_distance {
         // println!("Calc: {:?}", (Haversine::offset(&s_latlng, &offset.column(0), &offset.column(1)) * 1e10).floor());
         // println!("Ans:  {:?}", (&e_latlng * 1e10).floor());
         assert!(
-            (Haversine::offset(&s_latlng, &offset.column(0), &offset.column(1)) * 1e10).floor()
+            (Haversine::offset_from_point(
+                &s_latlng,
+                &offset.column(0),
+                &offset.column(1)
+            ) * 1e10).floor()
             == (&e_latlng * 1e10).floor()
         );
     }
