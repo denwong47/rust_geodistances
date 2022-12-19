@@ -13,5 +13,15 @@ This project includes a Rust binary backend:
 
 from . import decorators
 from . import lib_rust_geodistances as bin
+from .lib_rust_geodistances import CalculationMethod, CalculationSettings
 
-print("### Init had run for rust_geodistances ###")
+haversine: bin.CalculationMethod = bin.CalculationMethod.HAVERSINE
+"""
+Enum instance containing Haversine calculations methods.
+
+Use:
+- :func:`haversine.distance`
+- :func:`haversine.distance_from_point`
+"""
+
+# vincenty:bin.CalculationMethod = bin.CalculationMethod.VINCENTY
