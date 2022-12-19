@@ -17,6 +17,7 @@ use rayon::prelude::*;
 use super::config::{
     RADIUS,
     workers_count,
+    CalculationSettings,
 };
 
 use super::traits::{
@@ -48,6 +49,7 @@ use ndarray_numeric::{
     F64LatLngArray,
 };
 
+use super::config;
 
 /// Haversine calculation
 /// Assumes spherical world - fast but has errors up to ~0.35%
@@ -60,6 +62,7 @@ impl CalculateDistance for Haversine {
         s_lng_r:&f64,
         e_lat_r:&F64ArrayView<'_, Ix1>,
         e_lng_r:&F64ArrayView<'_, Ix1>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1 {
         return {
             // bear in mind that e_lat_r is an array while s_lat_r is f64
@@ -74,6 +77,7 @@ impl CalculateDistance for Haversine {
         s_lng_r:&F64ArrayView<'_, Ix1>,
         e_lat_r:&F64ArrayView<'_, Ix1>,
         e_lng_r:&F64ArrayView<'_, Ix1>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let mut results = F64Array2::zeros((0, e_lat_r.len()));
 
@@ -83,7 +87,8 @@ impl CalculateDistance for Haversine {
                 results.push_row(
                     Self::distance_from_point_rad(
                         &lat, &lng,
-                        e_lat_r, e_lng_r
+                        e_lat_r, e_lng_r,
+                        settings,
                     ).view()
                 ).unwrap();
             });
@@ -94,6 +99,7 @@ impl CalculateDistance for Haversine {
     fn distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1 {
 
         let (s_lat, s_lng) = (s[0], s[1]);
@@ -103,9 +109,13 @@ impl CalculateDistance for Haversine {
         let e_latlng_r = e.to_rad();
         let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
 
-        let d = Self::distance_from_point_rad(&s_lat_r, &s_lng_r, &e_lat_r, &e_lng_r);
+        let radius: f64 = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).spherical_radius;
 
-        return d * RADIUS;
+        let d = Self::distance_from_point_rad(&s_lat_r, &s_lng_r, &e_lat_r, &e_lng_r, settings,);
+
+        return d * radius;
     }
 
     fn distance(
@@ -113,12 +123,17 @@ impl CalculateDistance for Haversine {
         e:&dyn LatLngArray,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let (s_latlng_r, e_latlng_r) = (s.to_rad(), e.to_rad());
         let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
 
         let workers: usize = workers.unwrap_or(workers_count());
         let chunk_size: usize = (shape.0 as f32 / workers as f32).ceil() as usize;
+
+        let radius: f64 = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).spherical_radius;
 
         let results = {
             s_latlng_r.axis_chunks_iter(Axis(0), chunk_size)
@@ -129,6 +144,7 @@ impl CalculateDistance for Haversine {
                             Self::distance_rad(
                                 &s_lat_r, &s_lng_r,
                                 &e_lat_r, &e_lng_r,
+                                settings,
                             )
                         }
                      )
@@ -139,7 +155,7 @@ impl CalculateDistance for Haversine {
                             return a;
                         }
                      )
-        } * RADIUS;
+        } * radius;
 
         return results;
     }
@@ -158,10 +174,14 @@ impl<__impl_generics__> OffsetByVector<__vector_type__> for Haversine {
         s:&dyn LatLngArray,
         distance:__vector_type__,
         bearing:__vector_type__,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray {
         let bearing_r = bearing / 180. * PI;
+        let radius: f64 = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).spherical_radius;
 
-        let ang_dist = distance / RADIUS;
+        let ang_dist = distance / radius;
         let s_latlng_r= s.to_rad();
         let (s_lat_r, s_lng_r) = (
             s_latlng_r.column(0), s_latlng_r.column(1)
@@ -211,8 +231,9 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Haversine {
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:__vector_type__,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1 {
-        return (Self::distance_from_point(s, e) - distance).le(&0.);
+        return (Self::distance_from_point(s, e, settings,) - distance).le(&0.);
     }
 
     fn within_distance(
@@ -221,7 +242,8 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Haversine {
         distance: __vector_type__,
         shape: (usize, usize),
         workers: Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
-        return (Self::distance(s, e, shape, workers) - distance).le(&0.);
+        return (Self::distance(s, e, shape, workers, settings,) - distance).le(&0.);
     }
 }

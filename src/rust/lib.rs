@@ -35,12 +35,13 @@ fn distance(
     dest:  Vec<[f64; 2]>,
     method: Option<&compatibility::enums::CalculationMethod>,
     workers: Option<usize>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<Vec<f64>>> {
     let s = arr2(&start);
     let e = arr2(&dest);
 
     let results = {
-        compatibility::func::distance(&s, &e, method, workers)
+        compatibility::func::distance(&s, &e, method, workers, settings)
     };
 
     return Ok(
@@ -57,12 +58,13 @@ fn distance_from_point(
     start: [f64; 2],
     dest:  Vec<[f64; 2]>,
     method: Option<&compatibility::enums::CalculationMethod>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<f64>> {
     let s = arr1(&start);
     let e = arr2(&dest);
 
     return Ok(
-        compatibility::func::distance_from_point(&s, &e, method)
+        compatibility::func::distance_from_point(&s, &e, method, settings)
                             .to_vec()
     );
 }
@@ -77,6 +79,7 @@ fn within_distance(
     distance: f64,
     method: Option<&compatibility::enums::CalculationMethod>,
     workers: Option<usize>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<Vec<bool>>> {
     let s = arr2(&start);
     let e = arr2(&dest);
@@ -84,7 +87,8 @@ fn within_distance(
     return Ok(
         compatibility::func::within_distance(
                                 &s, &e,
-                                distance, method, workers
+                                distance, method, workers,
+                                settings,
                             )
                             .to_vec()
     );
@@ -96,6 +100,7 @@ fn within_distance_of_point(
     dest:  Vec<[f64; 2]>,
     distance: f64,
     method: Option<&compatibility::enums::CalculationMethod>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<bool>> {
     let s = arr1(&start);
     let e = arr2(&dest);
@@ -103,7 +108,8 @@ fn within_distance_of_point(
     return Ok(
         compatibility::func::within_distance_of_point(
                                 &s, &e,
-                                distance, method
+                                distance, method,
+                                settings,
                             )
                             .to_vec()
     );
@@ -116,6 +122,7 @@ fn indices_within_distance(
     distance: f64,
     method: Option<&compatibility::enums::CalculationMethod>,
     workers: Option<usize>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<Vec<usize>>> {
     let s = arr2(&start);
     let e = arr2(&dest);
@@ -123,7 +130,8 @@ fn indices_within_distance(
     return Ok(
         compatibility::func::indices_within_distance(
                                 &s, &e,
-                                distance, method, workers
+                                distance, method, workers,
+                                settings,
                             )
     );
 }
@@ -134,6 +142,7 @@ fn indices_within_distance_of_point(
     dest:  Vec<[f64; 2]>,
     distance: f64,
     method: Option<&compatibility::enums::CalculationMethod>,
+    settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<usize>> {
     let s = arr1(&start);
     let e = arr2(&dest);
@@ -141,7 +150,8 @@ fn indices_within_distance_of_point(
     return Ok(
         compatibility::func::indices_within_distance_of_point(
                                 &s, &e,
-                                distance, method
+                                distance, method,
+                                settings,
                             )
     );
 }
@@ -312,7 +322,7 @@ mod test_distance {
 
 
         assert!(
-            Haversine::distance_from_point(&s_latlng.view(), &e_latlng)
+            Haversine::distance_from_point(&s_latlng.view(), &e_latlng, None)
             == distance_haversine
         );
     }
@@ -401,7 +411,8 @@ mod test_distance {
             (Haversine::offset_from_point(
                 &s_latlng,
                 &offset.column(0),
-                &offset.column(1)
+                &offset.column(1),
+                None,
             ) * 1e10).floor()
             == (&e_latlng * 1e10).floor()
         );

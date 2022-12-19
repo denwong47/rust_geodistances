@@ -27,6 +27,8 @@ use ndarray_numeric::{
     F64LatLngArrayViewMut,
 };
 
+use super::config;
+
 // Marker types that include
 pub trait LatLng : ArrayWithF64AngularMethods<Ix1> + Index<Ix, Output = f64> {}
 pub trait LatLngArray : ArrayWithF64LatLngMethods + Index<Dim<[Ix; 2]>, Output = f64> {}
@@ -54,6 +56,7 @@ pub trait CalculateDistance {
         s_lng_r:&f64,
         e_lat_r:&F64ArrayView<'_, Ix1>,
         e_lng_r:&F64ArrayView<'_, Ix1>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1;
 
     fn distance_rad(
@@ -61,11 +64,13 @@ pub trait CalculateDistance {
         s_lng_r:&F64ArrayView<'_, Ix1>,
         e_lat_r:&F64ArrayView<'_, Ix1>,
         e_lng_r:&F64ArrayView<'_, Ix1>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
     fn distance_from_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1;
 
     fn distance(
@@ -73,6 +78,7 @@ pub trait CalculateDistance {
         e:&dyn LatLngArray,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 }
 /// Generic T here, could be scalar f64 or F64Array.
@@ -81,6 +87,7 @@ pub trait OffsetByVector<T>:CalculateDistance {
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray;
 }
 
@@ -91,6 +98,7 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1;
 
     fn within_distance(
@@ -106,5 +114,6 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
         distance: T,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 }

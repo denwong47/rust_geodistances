@@ -13,8 +13,6 @@ pub const ELLIPSE_WGS84_A:f64 = 6378.137;
 pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
 pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
 
-pub static EPS:f64    = f64::EPSILON;
-
 pub const DEFAULT_WORKERS:usize = 4;
 
 pub fn workers_count() -> usize {
@@ -26,12 +24,12 @@ pub fn workers_count() -> usize {
 
 #[pyclass(module="rust_geodistances")]
 pub struct CalculationSettings{
-    spherical_radius:f64,
-    ellipse_a:f64,
-    ellipse_b:f64,
-    ellipse_f:f64,
-    eps:f64,
-    workers:usize,
+    pub spherical_radius:f64,
+    pub ellipse_a:f64,
+    pub ellipse_b:f64,
+    pub ellipse_f:f64,
+    pub eps:f64,
+    pub workers:usize,
 }
 impl Default for CalculationSettings {
     fn default() -> Self {

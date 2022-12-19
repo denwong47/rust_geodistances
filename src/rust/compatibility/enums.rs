@@ -29,6 +29,7 @@ use crate::calc_models::traits::{
 use crate::calc_models::{
     Haversine,
     // Vincenty,
+    config,
 };
 
 #[pyclass(module="rust_geodistances")]
@@ -48,6 +49,7 @@ pub trait CalculationInterface<T> {
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1;
 
     fn distance(
@@ -56,6 +58,7 @@ pub trait CalculationInterface<T> {
         e:&dyn LatLngArray,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
     fn offset(
@@ -63,6 +66,7 @@ pub trait CalculationInterface<T> {
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray;
 
     fn within_distance_from_point(
@@ -70,6 +74,7 @@ pub trait CalculationInterface<T> {
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1;
 
     fn within_distance(
@@ -79,6 +84,7 @@ pub trait CalculationInterface<T> {
         distance:f64,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 }
 
@@ -97,6 +103,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         distance:f64,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
     // No Generics on this one.
@@ -104,13 +111,14 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array1 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance_from_point,
             // Self::VINCENTY => Vincenty::distance_from_point,
         };
 
-        return f(s, e);
+        return f(s, e, settings);
     }
 
     fn distance(
@@ -119,13 +127,14 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         e:&dyn LatLngArray,
         shape:(usize, usize),
         workers:Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance,
             // Self::VINCENTY => Vincenty::distance,
         };
 
-        return f(s, e, shape, workers);
+        return f(s, e, shape, workers, settings);
     }
 
     fn offset(
@@ -133,13 +142,14 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         s:&dyn LatLngArray,
         distance:__vector_type__,
         bearing:__vector_type__,
+        settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray {
         let f = match self {
             Self::HAVERSINE => Haversine::offset_from_point,
             // Self::VINCENTY => Vincenty::offset_from_point,
         };
 
-        return f(s, distance, bearing);
+        return f(s, distance, bearing, settings);
     }
 
     fn within_distance_from_point(
@@ -147,13 +157,14 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance: __vector_type__,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1 {
         let f = match self {
             Self::HAVERSINE => Haversine::within_distance_from_point,
             // Self::VINCENTY => Vincenty::within_distance_from_point,
         };
 
-        return f(s, e, distance);
+        return f(s, e, distance, settings);
     }
 
     fn within_distance(
@@ -163,12 +174,13 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         distance: f64, // Restrict to f64 here
         shape: (usize, usize),
         workers: Option<usize>,
+        settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
         let f: Self::FnWithinDistance  = match self {
             Self::HAVERSINE => Haversine::within_distance,
             // Self::VINCENTY => Vincenty::within_distance,
         };
 
-        return f(s, e, distance, shape, workers);
+        return f(s, e, distance, shape, workers, settings);
     }
 }
