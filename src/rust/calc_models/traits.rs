@@ -93,7 +93,7 @@ pub trait OffsetByVector<T>:CalculateDistance {
 //  CheckDistance REQUIRES OffsetByVector
 /// Generic T here, could be scalar f64 or F64Array.
 pub trait CheckDistance<T>:OffsetByVector<T> {
-    fn within_distance_from_point(
+    fn within_distance_of_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,

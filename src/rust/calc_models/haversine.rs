@@ -228,7 +228,7 @@ impl<__impl_generics__> OffsetByVector<__vector_type__> for Haversine {
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
 impl<__impl_generics__> CheckDistance<__vector_type__> for Haversine {
-    fn within_distance_from_point(
+    fn within_distance_of_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:__vector_type__,

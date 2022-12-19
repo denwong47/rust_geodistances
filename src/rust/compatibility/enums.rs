@@ -7,6 +7,8 @@ use ndarray::{
 use pyo3::prelude::*;
 
 use ndarray_numeric::{
+    ArrayWithBoolIterMethods,
+
     BoolArray1,
     BoolArray2,
 
@@ -32,6 +34,10 @@ use crate::calc_models::{
     config,
 };
 
+use super::conversions::{
+    BoolArrayToVecIndex,
+};
+
 #[pyclass(module="rust_geodistances")]
 pub enum CalculationMethod {
     HAVERSINE,
@@ -41,18 +47,18 @@ impl Default for CalculationMethod {
     fn default() -> Self { Self::HAVERSINE }
 }
 
-pub trait CalculationInterface<T> {
+pub trait CalculationInterfaceInternal<T> {
     type FnWithinDistance;
 
     // No Generics on this one.
-    fn distance_from_point(
+    fn _distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array1;
 
-    fn distance(
+    fn _distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
@@ -60,7 +66,7 @@ pub trait CalculationInterface<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
-    fn offset(
+    fn _offset(
         &self,
         s:&dyn LatLngArray,
         distance:T,
@@ -68,7 +74,7 @@ pub trait CalculationInterface<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray;
 
-    fn within_distance_from_point(
+    fn _within_distance_of_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -76,7 +82,7 @@ pub trait CalculationInterface<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1;
 
-    fn within_distance(
+    fn _within_distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
@@ -84,6 +90,24 @@ pub trait CalculationInterface<T> {
         shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
+
+    fn _indices_within_distance_of_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        distance: f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> Vec<usize>;
+
+    fn _indices_within_distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance: f64,
+        shape: (usize, usize),
+        settings: Option<&config::CalculationSettings>,
+    ) -> Vec<Vec<usize>>;
+
 }
 
 #[duplicate_item(
@@ -94,7 +118,7 @@ pub trait CalculationInterface<T> {
     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
-impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMethod {
+impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for CalculationMethod {
     type FnWithinDistance = fn(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
@@ -104,7 +128,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
     ) -> BoolArray2;
 
     // No Generics on this one.
-    fn distance_from_point(
+    fn _distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -118,7 +142,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         return f(s, e, settings);
     }
 
-    fn distance(
+    fn _distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
@@ -133,7 +157,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         return f(s, e, shape, settings);
     }
 
-    fn offset(
+    fn _offset(
         &self,
         s:&dyn LatLngArray,
         distance:__vector_type__,
@@ -148,7 +172,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         return f(s, distance, bearing, settings);
     }
 
-    fn within_distance_from_point(
+    fn _within_distance_of_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -156,14 +180,14 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1 {
         let f = match self {
-            Self::HAVERSINE => Haversine::within_distance_from_point,
+            Self::HAVERSINE => Haversine::within_distance_of_point,
             // Self::VINCENTY => Vincenty::within_distance_from_point,
         };
 
         return f(s, e, distance, settings);
     }
 
-    fn within_distance(
+    fn _within_distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
@@ -178,4 +202,41 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
 
         return f(s, e, distance, shape, settings);
     }
+
+    /// Does this belong here, or in lib.rs?
+    fn _indices_within_distance(
+        &self,
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance: f64,
+        shape: (usize, usize),
+        settings: Option<&config::CalculationSettings>,
+    ) -> Vec<Vec<usize>> {
+        return CalculationInterfaceInternal
+               ::<__vector_type__>
+               ::_within_distance(
+                    self,
+                    s, e,
+                    distance, shape,
+                    settings,
+                ).to_vec_of_indices();
+    }
+
+    /// Does this belong here, or in lib.rs?
+    fn _indices_within_distance_of_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        distance: f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> Vec<usize> {
+        return self._within_distance_of_point(
+            s, e,
+            distance,
+            settings,
+        )
+        .indices()
+        .to_vec();
+    }
+
 }

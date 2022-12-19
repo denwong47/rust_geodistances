@@ -19,6 +19,7 @@ pyo3 = { version = "0.17", features = ["extension-module"] }
 duplicate = "0.4"
 ndarray = { version = "0.15", features = ["rayon"] }
 num-format = "0.4"
+numpy = "0.17"
 rayon = "1.6"
 strum = { version = "0.24", features = ["derive"] }
 timeit = "0.1"

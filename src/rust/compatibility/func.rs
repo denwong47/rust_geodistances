@@ -28,7 +28,7 @@ pub fn distance(
 ) -> F64Array2 {
     let shape = (s.shape()[0], e.shape()[0]);
 
-    return enums::CalculationInterface::<&F64Array1>::distance(
+    return enums::CalculationInterfaceInternal::<&F64Array1>::_distance(
         method.unwrap_or(
             &enums::CalculationMethod::default()
         ),
@@ -44,7 +44,7 @@ pub fn distance_from_point(
     method: Option<&enums::CalculationMethod>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> F64Array1 {
-    return enums::CalculationInterface::<&F64Array1>::distance_from_point(
+    return enums::CalculationInterfaceInternal::<&F64Array1>::_distance_from_point(
         method.unwrap_or(
             &enums::CalculationMethod::default()
         ),
@@ -64,7 +64,7 @@ pub fn within_distance(
 ) -> BoolArray2 {
     let shape = (s.shape()[0], e.shape()[0]);
 
-    return enums::CalculationInterface::<f64>::within_distance(
+    return enums::CalculationInterfaceInternal::<f64>::_within_distance(
         method.unwrap_or(
             &enums::CalculationMethod::default()
         ),
@@ -83,7 +83,7 @@ pub fn within_distance_of_point(
     method: Option<&enums::CalculationMethod>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> BoolArray1 {
-    return enums::CalculationInterface::<f64>::within_distance_from_point(
+    return enums::CalculationInterfaceInternal::<f64>::_within_distance_of_point(
         method.unwrap_or(
             &enums::CalculationMethod::default()
         ), s, e, distance, settings)
