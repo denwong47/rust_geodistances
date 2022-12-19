@@ -24,11 +24,22 @@ pub fn workers_count() -> usize {
 
 #[pyclass(module="rust_geodistances")]
 pub struct CalculationSettings{
+    #[pyo3(get, set)]
     pub spherical_radius:f64,
+
+    #[pyo3(get, set)]
     pub ellipse_a:f64,
+
+    #[pyo3(get, set)]
     pub ellipse_b:f64,
+
+    #[pyo3(get, set)]
     pub ellipse_f:f64,
+
+    #[pyo3(get, set)]
     pub eps:f64,
+
+    #[pyo3(get, set)]
     pub workers:usize,
 }
 impl Default for CalculationSettings {
