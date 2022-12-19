@@ -159,6 +159,7 @@ fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(indices_within_distance, m)?)?;
 
     m.add_class::<compatibility::enums::CalculationMethod>()?;
+    m.add_class::<calc_models::config::CalculationSettings>()?;
 
     Ok(())
 }
