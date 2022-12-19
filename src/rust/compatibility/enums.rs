@@ -57,7 +57,6 @@ pub trait CalculationInterface<T> {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
@@ -83,7 +82,6 @@ pub trait CalculationInterface<T> {
         e:&dyn LatLngArray,
         distance:f64,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 }
@@ -102,7 +100,6 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         e:&dyn LatLngArray,
         distance:f64,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
@@ -126,7 +123,6 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let f = match self {
@@ -134,7 +130,7 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
             // Self::VINCENTY => Vincenty::distance,
         };
 
-        return f(s, e, shape, workers, settings);
+        return f(s, e, shape, settings);
     }
 
     fn offset(
@@ -173,7 +169,6 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
         e:&dyn LatLngArray,
         distance: f64, // Restrict to f64 here
         shape: (usize, usize),
-        workers: Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
         let f: Self::FnWithinDistance  = match self {
@@ -181,6 +176,6 @@ impl<__impl_generics__> CalculationInterface<__vector_type__> for CalculationMet
             // Self::VINCENTY => Vincenty::within_distance,
         };
 
-        return f(s, e, distance, shape, workers, settings);
+        return f(s, e, distance, shape, settings);
     }
 }

@@ -99,4 +99,20 @@ impl CalculationSettings {
         self.__repr__().hash(&mut hasher);
         hasher.finish()
     }
+
+    /// Print out the current settings.
+    fn explain(&self) {
+        let mut params = vec![];
+
+        params.push(format!("  - {:20}= {:>22?}", "spherical_radius", self.spherical_radius));
+        params.push(format!("  - {:20}= {:>22?}", "ellipse_a", self.ellipse_a));
+        params.push(format!("  - {:20}= {:>22?}", "ellipse_b", self.ellipse_b));
+        params.push(format!("  - {:20}= {:>22?}", "ellipse_f", self.ellipse_f));
+        params.push(format!("  - {:20}= {:>22?}", "eps", self.eps));
+        params.push(format!("  - {:20}= {:>22?}", "workers", self.workers));
+
+        return println!(
+            "CalculationSettings:\n{}", params.join("\n")
+        );
+    }
 }

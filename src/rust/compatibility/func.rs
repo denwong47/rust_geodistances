@@ -24,7 +24,6 @@ pub fn distance(
     s: &F64LatLngArray,
     e: &F64LatLngArray,
     method: Option<&enums::CalculationMethod>,
-    workers: Option<usize>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> F64Array2 {
     let shape = (s.shape()[0], e.shape()[0]);
@@ -35,7 +34,6 @@ pub fn distance(
         ),
         s, e,
         shape,
-        workers,
         settings,
     );
 }
@@ -62,7 +60,6 @@ pub fn within_distance(
     e: &F64LatLngArray,
     distance: f64,
     method: Option<&enums::CalculationMethod>,
-    workers: Option<usize>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> BoolArray2 {
     let shape = (s.shape()[0], e.shape()[0]);
@@ -72,7 +69,7 @@ pub fn within_distance(
             &enums::CalculationMethod::default()
         ),
         s, e,
-        distance, shape, workers,
+        distance, shape,
         settings,
     )
 }
@@ -98,12 +95,11 @@ pub fn indices_within_distance(
     e: &F64LatLngArray,
     distance: f64,
     method: Option<&enums::CalculationMethod>,
-    workers: Option<usize>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> Vec<Vec<usize>> {
     return within_distance(
         s, e,
-        distance, method, workers,
+        distance, method,
         settings,
     ).to_vec_of_indices();
 }

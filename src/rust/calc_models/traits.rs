@@ -77,7 +77,6 @@ pub trait CalculateDistance {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 }
@@ -113,7 +112,6 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
         // but currently this is in the backlog.
         distance: T,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 }

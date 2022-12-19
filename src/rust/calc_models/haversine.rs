@@ -15,9 +15,7 @@ use ndarray::{
 use rayon::prelude::*;
 
 use super::config::{
-    RADIUS,
     workers_count,
-    CalculationSettings,
 };
 
 use super::traits::{
@@ -64,6 +62,8 @@ impl CalculateDistance for Haversine {
         e_lng_r:&F64ArrayView<'_, Ix1>,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array1 {
+        drop(&settings);
+
         return {
             // bear in mind that e_lat_r is an array while s_lat_r is f64
             ((e_lat_r - *s_lat_r)/2.).sin().powi(2)
@@ -122,13 +122,14 @@ impl CalculateDistance for Haversine {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         shape:(usize, usize),
-        workers:Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let (s_latlng_r, e_latlng_r) = (s.to_rad(), e.to_rad());
         let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
 
-        let workers: usize = workers.unwrap_or(workers_count());
+        let workers: usize = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).workers;
         let chunk_size: usize = (shape.0 as f32 / workers as f32).ceil() as usize;
 
         let radius: f64 = settings.unwrap_or(
@@ -241,9 +242,8 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Haversine {
         e:&dyn LatLngArray,
         distance: __vector_type__,
         shape: (usize, usize),
-        workers: Option<usize>,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
-        return (Self::distance(s, e, shape, workers, settings,) - distance).le(&0.);
+        return (Self::distance(s, e, shape, settings,) - distance).le(&0.);
     }
 }

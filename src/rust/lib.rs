@@ -34,14 +34,13 @@ fn distance(
     start:  Vec<[f64; 2]>,
     dest:  Vec<[f64; 2]>,
     method: Option<&compatibility::enums::CalculationMethod>,
-    workers: Option<usize>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<Vec<f64>>> {
     let s = arr2(&start);
     let e = arr2(&dest);
 
     let results = {
-        compatibility::func::distance(&s, &e, method, workers, settings)
+        compatibility::func::distance(&s, &e, method, settings)
     };
 
     return Ok(
@@ -87,7 +86,7 @@ fn within_distance(
     return Ok(
         compatibility::func::within_distance(
                                 &s, &e,
-                                distance, method, workers,
+                                distance, method,
                                 settings,
                             )
                             .to_vec()
@@ -121,7 +120,6 @@ fn indices_within_distance(
     dest:  Vec<[f64; 2]>,
     distance: f64,
     method: Option<&compatibility::enums::CalculationMethod>,
-    workers: Option<usize>,
     settings: Option<&calc_models::config::CalculationSettings>,
 ) -> PyResult<Vec<Vec<usize>>> {
     let s = arr2(&start);
@@ -130,7 +128,7 @@ fn indices_within_distance(
     return Ok(
         compatibility::func::indices_within_distance(
                                 &s, &e,
-                                distance, method, workers,
+                                distance, method,
                                 settings,
                             )
     );
