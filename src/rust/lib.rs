@@ -318,10 +318,12 @@ mod test_distance {
             ]
         );
 
-
         assert!(
-            Haversine::distance_from_point(&s_latlng.view(), &e_latlng, None)
-            == distance_haversine
+            (
+                Haversine::distance_from_point(&s_latlng.view(), &e_latlng, None)
+                * 1e10
+            ).floor()
+            == (&distance_haversine * 1e10).floor()
         );
     }
 
