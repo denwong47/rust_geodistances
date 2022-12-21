@@ -20,9 +20,6 @@ use ndarray_numeric::{
 
 use crate::calc_models::config;
 use super::{enums, CalculationInterfaceInternal};
-use super::conversions::{
-    BoolArrayToVecIndex,
-};
 
 #[pymethods]
 impl enums::CalculationMethod {

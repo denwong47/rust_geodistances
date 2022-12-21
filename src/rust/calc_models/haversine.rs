@@ -1,22 +1,16 @@
 use std::f64::consts::PI;
-use std::ops::Index;
 
 use duplicate::duplicate_item;
 
 use ndarray::{
     Axis,
-    Array1,
     Ix1,
     // Ix2,
     // NdIndex,
-    s,
+    // s,
     Zip,
 };
 use rayon::prelude::*;
-
-use super::config::{
-    workers_count,
-};
 
 use super::traits::{
     LatLng,
@@ -35,8 +29,6 @@ use ndarray_numeric::{
 
     BoolArray1,
     BoolArray2,
-    ArrayWithBoolIterMethods,
-    ArrayWithBoolMaskMethods,
 
     F64Array1,
     F64Array2,

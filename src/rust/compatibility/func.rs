@@ -1,5 +1,7 @@
 // Abstract layer to mimic the public function arguments,
 // but uses ndarrays for all parameters and returns.
+//
+// THIS MODULE IS OBSOLETE - use python.rs instead.
 
 use ndarray_numeric::{
     ArrayWithBoolIterMethods,
