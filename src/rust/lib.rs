@@ -3,10 +3,10 @@ use duplicate::duplicate_item;
 
 use pyo3::prelude::*;
 
-use ndarray::{
-    arr1,
-    arr2,
-};
+// use ndarray::{
+//     arr1,
+//     arr2,
+// };
 
 #[allow(unused_imports)]
 use ndarray_numeric::{
@@ -17,154 +17,154 @@ use ndarray_numeric::{
 };
 
 mod compatibility;
-use compatibility::{
-    Array2ToVecVec,
-};
+// use compatibility::{
+//     Array2ToVecVec,
+// };
 
 mod calc_models;
 
-/// Calculates distances from `start` to each of `dest` using the `method` specified.
-///
-/// The distance calculation itself is not excessively expensive, but the conversion
-/// from Rust Vec<Vec<f64>> into PyList is.
-///
-/// Try using the other functions such as indices
-#[pyfunction]
-fn distance(
-    start:  Vec<[f64; 2]>,
-    dest:  Vec<[f64; 2]>,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<Vec<f64>>> {
-    let s = arr2(&start);
-    let e = arr2(&dest);
+// /// Calculates distances from `start` to each of `dest` using the `method` specified.
+// ///
+// /// The distance calculation itself is not excessively expensive, but the conversion
+// /// from Rust Vec<Vec<f64>> into PyList is.
+// ///
+// /// Try using the other functions such as indices
+// #[pyfunction]
+// fn distance(
+//     start:  Vec<[f64; 2]>,
+//     dest:  Vec<[f64; 2]>,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<Vec<f64>>> {
+//     let s = arr2(&start);
+//     let e = arr2(&dest);
 
-    let results = {
-        compatibility::func::distance(&s, &e, method, settings)
-    };
+//     let results = {
+//         compatibility::func::distance(&s, &e, method, settings)
+//     };
 
-    return Ok(
-        // This is not the vanilla ndarray::ArrayBase::Array2ToVecVec,
-        // but the two dimensional implementation in compatibility::conversions.
-        results.to_vec()
-    )
-}
+//     return Ok(
+//         // This is not the vanilla ndarray::ArrayBase::Array2ToVecVec,
+//         // but the two dimensional implementation in compatibility::conversions.
+//         results.to_vec()
+//     )
+// }
 
-/// Calculates distances from the `start` point to each of `dest`
-/// using the `method` specified.
-#[pyfunction]
-fn distance_from_point(
-    start: [f64; 2],
-    dest:  Vec<[f64; 2]>,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<f64>> {
-    let s = arr1(&start);
-    let e = arr2(&dest);
+// /// Calculates distances from the `start` point to each of `dest`
+// /// using the `method` specified.
+// #[pyfunction]
+// fn distance_from_point(
+//     start: [f64; 2],
+//     dest:  Vec<[f64; 2]>,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<f64>> {
+//     let s = arr1(&start);
+//     let e = arr2(&dest);
 
-    return Ok(
-        compatibility::func::distance_from_point(&s, &e, method, settings)
-                            .to_vec()
-    );
-}
+//     return Ok(
+//         compatibility::func::distance_from_point(&s, &e, method, settings)
+//                             .to_vec()
+//     );
+// }
 
-/// Return array of booleans whether the points, when mapped between the arrays.
-///
-///
-#[pyfunction]
-fn within_distance(
-    start:  Vec<[f64; 2]>,
-    dest:  Vec<[f64; 2]>,
-    distance: f64,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    workers: Option<usize>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<Vec<bool>>> {
-    let s = arr2(&start);
-    let e = arr2(&dest);
+// /// Return array of booleans whether the points, when mapped between the arrays.
+// ///
+// ///
+// #[pyfunction]
+// fn within_distance(
+//     start:  Vec<[f64; 2]>,
+//     dest:  Vec<[f64; 2]>,
+//     distance: f64,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     workers: Option<usize>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<Vec<bool>>> {
+//     let s = arr2(&start);
+//     let e = arr2(&dest);
 
-    return Ok(
-        compatibility::func::within_distance(
-                                &s, &e,
-                                distance, method,
-                                settings,
-                            )
-                            .to_vec()
-    );
-}
+//     return Ok(
+//         compatibility::func::within_distance(
+//                                 &s, &e,
+//                                 distance, method,
+//                                 settings,
+//                             )
+//                             .to_vec()
+//     );
+// }
 
-#[pyfunction]
-fn within_distance_of_point(
-    start: [f64; 2],
-    dest:  Vec<[f64; 2]>,
-    distance: f64,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<bool>> {
-    let s = arr1(&start);
-    let e = arr2(&dest);
+// #[pyfunction]
+// fn within_distance_of_point(
+//     start: [f64; 2],
+//     dest:  Vec<[f64; 2]>,
+//     distance: f64,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<bool>> {
+//     let s = arr1(&start);
+//     let e = arr2(&dest);
 
-    return Ok(
-        compatibility::func::within_distance_of_point(
-                                &s, &e,
-                                distance, method,
-                                settings,
-                            )
-                            .to_vec()
-    );
-}
+//     return Ok(
+//         compatibility::func::within_distance_of_point(
+//                                 &s, &e,
+//                                 distance, method,
+//                                 settings,
+//                             )
+//                             .to_vec()
+//     );
+// }
 
-#[pyfunction]
-fn indices_within_distance(
-    start:  Vec<[f64; 2]>,
-    dest:  Vec<[f64; 2]>,
-    distance: f64,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<Vec<usize>>> {
-    let s = arr2(&start);
-    let e = arr2(&dest);
+// #[pyfunction]
+// fn indices_within_distance(
+//     start:  Vec<[f64; 2]>,
+//     dest:  Vec<[f64; 2]>,
+//     distance: f64,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<Vec<usize>>> {
+//     let s = arr2(&start);
+//     let e = arr2(&dest);
 
-    return Ok(
-        compatibility::func::indices_within_distance(
-                                &s, &e,
-                                distance, method,
-                                settings,
-                            )
-    );
-}
+//     return Ok(
+//         compatibility::func::indices_within_distance(
+//                                 &s, &e,
+//                                 distance, method,
+//                                 settings,
+//                             )
+//     );
+// }
 
-#[pyfunction]
-fn indices_within_distance_of_point(
-    start: [f64; 2],
-    dest:  Vec<[f64; 2]>,
-    distance: f64,
-    method: Option<&compatibility::enums::CalculationMethod>,
-    settings: Option<&calc_models::config::CalculationSettings>,
-) -> PyResult<Vec<usize>> {
-    let s = arr1(&start);
-    let e = arr2(&dest);
+// #[pyfunction]
+// fn indices_within_distance_of_point(
+//     start: [f64; 2],
+//     dest:  Vec<[f64; 2]>,
+//     distance: f64,
+//     method: Option<&compatibility::enums::CalculationMethod>,
+//     settings: Option<&calc_models::config::CalculationSettings>,
+// ) -> PyResult<Vec<usize>> {
+//     let s = arr1(&start);
+//     let e = arr2(&dest);
 
-    return Ok(
-        compatibility::func::indices_within_distance_of_point(
-                                &s, &e,
-                                distance, method,
-                                settings,
-                            )
-    );
-}
+//     return Ok(
+//         compatibility::func::indices_within_distance_of_point(
+//                                 &s, &e,
+//                                 distance, method,
+//                                 settings,
+//                             )
+//     );
+// }
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
-    m.add_function(wrap_pyfunction!(distance, m)?)?;
+    // m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
+    // m.add_function(wrap_pyfunction!(distance, m)?)?;
 
-    m.add_function(wrap_pyfunction!(within_distance_of_point, m)?)?;
-    m.add_function(wrap_pyfunction!(within_distance, m)?)?;
+    // m.add_function(wrap_pyfunction!(within_distance_of_point, m)?)?;
+    // m.add_function(wrap_pyfunction!(within_distance, m)?)?;
 
-    m.add_function(wrap_pyfunction!(indices_within_distance_of_point, m)?)?;
-    m.add_function(wrap_pyfunction!(indices_within_distance, m)?)?;
+    // m.add_function(wrap_pyfunction!(indices_within_distance_of_point, m)?)?;
+    // m.add_function(wrap_pyfunction!(indices_within_distance, m)?)?;
 
     m.add_class::<compatibility::enums::CalculationMethod>()?;
     m.add_class::<calc_models::config::CalculationSettings>()?;
@@ -406,7 +406,7 @@ mod test_distance {
         // println!("Calc: {:?}", (Haversine::offset(&s_latlng, &offset.column(0), &offset.column(1)) * 1e10).floor());
         // println!("Ans:  {:?}", (&e_latlng * 1e10).floor());
         assert!(
-            (Haversine::offset_from_point(
+            (Haversine::offset(
                 &s_latlng,
                 &offset.column(0),
                 &offset.column(1),
