@@ -171,7 +171,7 @@ impl CalculateDistance for Haversine {
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
 impl<__impl_generics__> OffsetByVector<__vector_type__> for Haversine {
-    fn offset_from_point(
+    fn offset(
         s:&dyn LatLngArray,
         distance:__vector_type__,
         bearing:__vector_type__,

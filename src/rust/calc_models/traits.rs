@@ -82,7 +82,44 @@ pub trait CalculateDistance {
 }
 /// Generic T here, could be scalar f64 or F64Array.
 pub trait OffsetByVector<T>:CalculateDistance {
-    fn offset_from_point(
+    /// Get the resultant coordinates after being displaced by the given vector(s).
+    ///
+    /// Parameters
+    /// ----------
+    /// s: Array2<f64>| ArcArray2<f64> | ArrayView2<'a, f64>
+    ///     Dimension `(n, 2)`. Array of coordinates to be displaced:
+    ///     - `array.column(0)` being latitude in degrees,
+    ///     - `array.column(1)` being longitude in degrees.
+    ///
+    /// distance: f64 | Array1<f64>
+    ///     If `f64`, all coordinates in `s` will be displaced by the
+    ///     same distance.
+    ///
+    ///     If `Array1<f64>`, then Dimension must be `(n)` where `n` is
+    ///     the number of rows in `s`. Each pair of coordinates in `s`
+    ///     will then be displaced by the distance matching
+    ///     element-wise by row.
+    ///
+    /// bearing: f64 | Array1<f64>
+    ///     If `f64`, all coordinates in `s` will be displaced towards
+    ///     the same bearing.
+    ///
+    ///     If `Array1<f64>`, then Dimension must be `(n)` where `n` is
+    ///     the number of rows in `s`. Each pair of coordinates in `s`
+    ///     will then be displaced by the bearing matching
+    ///     element-wise by row.
+    ///
+    /// settings: Option<&config::CalculationSettings>
+    ///     Settings to be passed on to the calculation method.
+    ///
+    /// Returns
+    /// -------
+    /// Array2<f64>
+    ///     Dimension `(n, 2)`, with `n` matching the number of rows in
+    ///     `s`.
+    ///     - `array.column(0)` being latitude in degrees,
+    ///     - `array.column(1)` being longitude in degrees.
+    fn offset(
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
@@ -90,8 +127,18 @@ pub trait OffsetByVector<T>:CalculateDistance {
     ) -> F64LatLngArray;
 }
 
-//  CheckDistance REQUIRES OffsetByVector
 /// Generic T here, could be scalar f64 or F64Array.
+///
+/// .. note::
+///     CheckDistance REQUIRES OffsetByVector.
+///
+/// While this trait allows for T as 1-dimensional arrays, which
+/// ACTUALLY works, but the length of the array needs
+/// to match that of `e`, not `s` intuitively.
+///
+/// There is already the trait of `ArrayWithF64MappedOperators`
+/// to resolve this; but this will require a second `impl` for
+/// `T:F64Array1`, which is not a priority for now.
 pub trait CheckDistance<T>:OffsetByVector<T> {
     fn within_distance_of_point(
         s:&dyn LatLng,
@@ -103,13 +150,6 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
     fn within_distance(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-
-        // Only supports f64 for 2-dimensions:
-        // While this parameter allows for 1-dimensional arrays, which
-        // it ACTUALLY works, but the length of the array needs
-        // to match that of `e`, not `s` intuitively.
-        // We can probably change this to make it work with some `rows_mut`
-        // but currently this is in the backlog.
         distance: T,
         shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,

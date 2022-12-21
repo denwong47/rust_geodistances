@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies= [
     "numpy",
+    "maturin",
 ]
 
 [project.optional-dependencies]
@@ -49,7 +50,6 @@ sections=[
     "STDLIB",
     "THIRDPARTY",
     "FIRSTPARTY",
-    "FORESTREET",
     "LOCALFOLDER",
 ]
 known_third_party = [

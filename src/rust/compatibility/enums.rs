@@ -165,8 +165,8 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray {
         let f = match self {
-            Self::HAVERSINE => Haversine::offset_from_point,
-            // Self::VINCENTY => Vincenty::offset_from_point,
+            Self::HAVERSINE => Haversine::offset,
+            // Self::VINCENTY => Vincenty::offset,
         };
 
         return f(s, distance, bearing, settings);
