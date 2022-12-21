@@ -92,7 +92,7 @@ class TimedFunction:
 
         Parameters
         ----------
-        *args, **kwargs
+        args, kwargs
             Parameters to be passed to the underlying function.
 
         Returns
@@ -110,7 +110,7 @@ class TimedFunction:
 
         Parameters
         ----------
-        *args, **kwargs
+        args, kwargs
             Parameters to be passed to the underlying function.
 
         number : int
