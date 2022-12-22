@@ -23,6 +23,7 @@ use super::{enums, CalculationInterfaceInternal};
 
 #[pymethods]
 impl enums::CalculationMethod {
+    #[pyo3(text_signature = "($self, s, e, *, settings)")]
     fn distance_from_point(
         &self,
         s: &PyArray<f64, Ix1>,
@@ -42,6 +43,25 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
+    #[pyo3(text_signature = "($self, s, e, *, settings)")]
+    /// Great-circle distances between two arrays of lat-long coordinates.
+    ///
+    /// Parameters
+    /// ----------
+    /// s: numpy.ndarray
+    ///     Of dimension ``(n, 2)``.
+    ///
+    /// e: numpy.ndarray
+    ///     Of dimension ``(n, 2)``.
+    ///
+    /// settings: CalculationSettings
+    ///     Settings to be passed on to the calculation method.
+    ///
+    /// Returns
+    /// -------
+    /// numpy.ndarray
+    ///     An array of great-circle distances mapping each point in
+    ///     `s` to each point in `e`.
     fn distance(
         &self,
         s: &PyArray<f64, Ix2>,
@@ -74,6 +94,7 @@ impl enums::CalculationMethod {
     //     py: Python<'_>,
     // ) -> PyResult<PyObject>;
 
+    #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     fn within_distance_from_point(
         &self,
         s: &PyArray<f64, Ix1>,
@@ -95,6 +116,7 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
+    #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     fn within_distance(
         &self,
         s: &PyArray<f64, Ix2>,
@@ -120,6 +142,7 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
+    #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     fn indices_within_distance_of_point(
         &self,
         s: &PyArray<f64, Ix1>,
@@ -142,6 +165,7 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
+    #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     fn indices_within_distance(
         &self,
         s: &PyArray<f64, Ix2>,

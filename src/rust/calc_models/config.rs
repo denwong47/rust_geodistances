@@ -23,32 +23,96 @@ pub fn workers_count() -> usize {
 }
 
 #[pyclass(module="rust_geodistances")]
+/// Data class for use as ``settings`` arguments to calculation methods.
+///
+/// All parameters are optional; calling this function by keyworded arguments
+/// is strongly recommended.
+///
+/// Parameters
+/// ----------
+/// spherical_radius: Optional[numpy.float64]
+/// ellipse_a: Optional[numpy.float64]
+/// ellipse_b: Optional[numpy.float64]
+/// ellipse_f: Optional[numpy.float64]
+/// tolerance: Optional[numpy.float64]
+/// eps: Optional[numpy.float64]
+/// workers: Optional[numpy.uint64]
+///
+/// Returns
+/// -------
+/// CalculationSettings
+///     Instance of :class:`CalculationSettings`, which can be passed as
+///     ``settings`` arguments to calculation methods.
 pub struct CalculationSettings{
     #[pyo3(get, set)]
+    /// Radius of the earth, assuming it is a sphere.
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// Used in Haversine calculations.
     pub spherical_radius:f64,
 
     #[pyo3(get, set)]
+    /// Ellipsoidal Semi-major axis length (``a``).
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// Used in Vincenty calculations.
     pub ellipse_a:f64,
 
     #[pyo3(get, set)]
+    /// Ellipsoidal Semi-minor axis length (``b``).
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// Used in Vincenty calculations.
     pub ellipse_b:f64,
 
     #[pyo3(get, set)]
+    /// Ellipsoidal Inverse Flattening (``1/f``).
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// Used in Vincenty calculations.
     pub ellipse_f:f64,
 
     #[pyo3(get, set)]
+    /// Tolerance threshold for iterative calculations.
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// Used in Vincenty calculations. The iterative process of Vincenty will
+    /// stop once the difference is below this threshold.
+    pub tolerance:f64,
+
+    #[pyo3(get, set)]
+    /// Epsilon value (``ε``).
+    ///
+    /// **Type:** numpy.float64
+    ///
+    /// 2 :class:`numpy.float64` values with absolute difference less than the
+    /// ``ε`` will be considered identical.
     pub eps:f64,
 
     #[pyo3(get, set)]
+    /// Number of CPU threads to use during parallelised operations.
+    ///
+    /// **Type:** numpy.u64
+    ///
+    /// Used in Haversine calculations.
     pub workers:usize,
 }
 impl Default for CalculationSettings {
+    /// Default value.
+    ///
+    /// Rust only.
     fn default() -> Self {
         return Self {
             spherical_radius:   RADIUS,
             ellipse_a:          ELLIPSE_WGS84_A,
             ellipse_b:          ELLIPSE_WGS84_B,
             ellipse_f:          ELLIPSE_WGS84_F,
+            tolerance:          1e-24,
             eps:                f64::EPSILON,
             workers:            workers_count(),
         }
@@ -62,6 +126,7 @@ impl CalculationSettings {
         ellipse_a:Option<f64>,
         ellipse_b:Option<f64>,
         ellipse_f:Option<f64>,
+        tolerance:Option<f64>,
         eps:Option<f64>,
         workers:Option<usize>,
     ) -> Self {
@@ -72,6 +137,7 @@ impl CalculationSettings {
             ellipse_a:          ellipse_a.unwrap_or(default.ellipse_a),
             ellipse_b:          ellipse_b.unwrap_or(default.ellipse_b),
             ellipse_f:          ellipse_f.unwrap_or(default.ellipse_f),
+            tolerance:          tolerance.unwrap_or(default.tolerance),
             eps:                f64::max(
                                     f64::EPSILON,
                                     eps.unwrap_or(default.eps)
@@ -91,6 +157,7 @@ impl CalculationSettings {
         params.push(format!("{}={:?}", "ellipse_a", self.ellipse_a));
         params.push(format!("{}={:?}", "ellipse_b", self.ellipse_b));
         params.push(format!("{}={:?}", "ellipse_f", self.ellipse_f));
+        params.push(format!("{}={:?}", "tolerance", self.tolerance));
         params.push(format!("{}={:?}", "eps", self.eps));
         params.push(format!("{}={:?}", "workers", self.workers));
 
@@ -111,7 +178,7 @@ impl CalculationSettings {
         hasher.finish()
     }
 
-    /// Print out the current settings.
+    /// Print the current settings to ``stdout``.
     fn explain(&self) {
         let mut params = vec![];
 
@@ -119,6 +186,7 @@ impl CalculationSettings {
         params.push(format!("  - {:20}= {:>22?}", "ellipse_a", self.ellipse_a));
         params.push(format!("  - {:20}= {:>22?}", "ellipse_b", self.ellipse_b));
         params.push(format!("  - {:20}= {:>22?}", "ellipse_f", self.ellipse_f));
+        params.push(format!("  - {:20}= {:>22?}", "tolerance", self.tolerance));
         params.push(format!("  - {:20}= {:>22?}", "eps", self.eps));
         params.push(format!("  - {:20}= {:>22?}", "workers", self.workers));
 

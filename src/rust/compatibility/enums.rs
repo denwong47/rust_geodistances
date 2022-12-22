@@ -39,8 +39,22 @@ use super::conversions::{
 };
 
 #[pyclass(module="rust_geodistances")]
+/// Pseudo-Enum class of all supported calculation models.
 pub enum CalculationMethod {
+    /// Haversine Calculation Model
+    ///
+    /// Assumes the Earth as a perfect sphere.
+    /// .. note::
+    ///     Algorithm derived from
+    ///     `Movable Type Scripts <https://www.movable-type.co.uk/scripts/latlong.html>`_
     HAVERSINE,
+
+    // /// Vincenty Calculation Model
+    // ///
+    // /// Assumes the Earth as an ellpisoid,
+    // /// .. note::
+    // ///     Algorithm derived from
+    // ///     `Movable Type Scripts <https://www.movable-type.co.uk/scripts/latlong-vincenty.html>`_
     // VINCENTY,
 }
 impl Default for CalculationMethod {
