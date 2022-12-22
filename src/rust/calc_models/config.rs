@@ -1,3 +1,5 @@
+/// Move this to compatibility?
+
 use std::cmp;
 use std::collections::hash_map::DefaultHasher;
 use std::default::Default;
@@ -179,6 +181,21 @@ impl CalculationSettings {
     }
 
     /// Print the current settings to ``stdout``.
+    ///
+    /// Example
+    /// -------
+    /// Use :meth:`explain` to print out the values::
+    ///
+    ///     >>> from rust_geodistances import CalculationSettings
+    ///     >>> CalculationSettings(workers=8).explain()
+    ///     CalculationSettings:
+    ///       - spherical_radius    =                 6371.0
+    ///       - ellipse_a           =               6378.137
+    ///       - ellipse_b           =         6356.752314245
+    ///       - ellipse_f           =  0.0033528106647474805
+    ///       - tolerance           =                  1e-24
+    ///       - eps                 =  2.220446049250313e-16
+    ///       - workers             =                      8
     fn explain(&self) {
         let mut params = vec![];
 
