@@ -15,6 +15,9 @@ pub const ELLIPSE_WGS84_A:f64 = 6378.137;
 pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
 pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
 
+pub const MAX_ITERATIONS:usize = 1000;
+pub const TOLERANCE:f64 = 1e-24;
+
 pub const DEFAULT_WORKERS:usize = 4;
 
 pub fn workers_count() -> usize {
@@ -88,6 +91,15 @@ pub struct CalculationSettings{
     pub tolerance:f64,
 
     #[pyo3(get, set)]
+    /// Maximum number of iterations regardless of whether tolerance is matched.
+    ///
+    /// **Type:** numpy.uint64
+    ///
+    /// Used in Vincenty calculations. The iterative process of Vincenty will
+    /// stop once this number of iterations had taken place.
+    pub max_iterations:usize,
+
+    #[pyo3(get, set)]
     /// Epsilon value (``ε``).
     ///
     /// **Type:** numpy.float64
@@ -114,7 +126,8 @@ impl Default for CalculationSettings {
             ellipse_a:          ELLIPSE_WGS84_A,
             ellipse_b:          ELLIPSE_WGS84_B,
             ellipse_f:          ELLIPSE_WGS84_F,
-            tolerance:          1e-24,
+            tolerance:          TOLERANCE,
+            max_iterations:     MAX_ITERATIONS,
             eps:                f64::EPSILON,
             workers:            workers_count(),
         }
@@ -129,6 +142,7 @@ impl CalculationSettings {
         ellipse_b:Option<f64>,
         ellipse_f:Option<f64>,
         tolerance:Option<f64>,
+        max_iterations:Option<usize>,
         eps:Option<f64>,
         workers:Option<usize>,
     ) -> Self {
@@ -140,6 +154,7 @@ impl CalculationSettings {
             ellipse_b:          ellipse_b.unwrap_or(default.ellipse_b),
             ellipse_f:          ellipse_f.unwrap_or(default.ellipse_f),
             tolerance:          tolerance.unwrap_or(default.tolerance),
+            max_iterations:     max_iterations.unwrap_or(default.max_iterations),
             eps:                f64::max(
                                     f64::EPSILON,
                                     eps.unwrap_or(default.eps)
@@ -160,6 +175,7 @@ impl CalculationSettings {
         params.push(format!("{}={:?}", "ellipse_b", self.ellipse_b));
         params.push(format!("{}={:?}", "ellipse_f", self.ellipse_f));
         params.push(format!("{}={:?}", "tolerance", self.tolerance));
+        params.push(format!("{}={:?}", "max_iterations", self.max_iterations));
         params.push(format!("{}={:?}", "eps", self.eps));
         params.push(format!("{}={:?}", "workers", self.workers));
 
@@ -194,6 +210,7 @@ impl CalculationSettings {
     ///       - ellipse_b           =         6356.752314245
     ///       - ellipse_f           =  0.0033528106647474805
     ///       - tolerance           =                  1e-24
+    ///       - max_iterations      =                   1000
     ///       - eps                 =  2.220446049250313e-16
     ///       - workers             =                      8
     fn explain(&self) {
@@ -204,6 +221,7 @@ impl CalculationSettings {
         params.push(format!("  - {:20}= {:>22?}", "ellipse_b", self.ellipse_b));
         params.push(format!("  - {:20}= {:>22?}", "ellipse_f", self.ellipse_f));
         params.push(format!("  - {:20}= {:>22?}", "tolerance", self.tolerance));
+        params.push(format!("  - {:20}= {:>22?}", "max_iterations", self.max_iterations));
         params.push(format!("  - {:20}= {:>22?}", "eps", self.eps));
         params.push(format!("  - {:20}= {:>22?}", "workers", self.workers));
 
