@@ -1,12 +1,10 @@
 use std::f64::consts::PI;
 
 use duplicate::{
-    duplicate,
     duplicate_item
 };
 
 use ndarray::{
-    arr1,
     Axis,
     Ix1,
     Zip,
@@ -33,7 +31,6 @@ use ndarray_numeric::{
     F64LatLngArray,
 
     ArrayWithBoolIterMethods,
-    ArrayWithBoolMaskMethods,
 };
 
 use super::{
@@ -117,7 +114,7 @@ impl CalculateDistance for Vincenty {
         //     return Some(0.)
         // }
 
-        for _ in 0..max_iterations {
+        for _i in 0..max_iterations {
             sin_lng_r = lambda.sin();
             cos_lng_r = lambda.cos();
 
@@ -129,9 +126,11 @@ impl CalculateDistance for Vincenty {
                 ).powi(2)
             };
 
-            let next_iteration_mask = sin_sq_ang_dist.abs().gt(&tolerance);
+            // let next_iteration_mask = sin_sq_ang_dist.abs().gt(&tolerance);
+            let next_iteration_mask = (&lambda_dash-&lambda).abs().gt(&tolerance);
 
             // If nothing needs to be iterated any more, stop the for loop
+            // println!("{}, {}, {}", _i, sin_sq_ang_dist.abs(), next_iteration_mask.any());
             if !next_iteration_mask.any() { break }
 
             // Mapping block
