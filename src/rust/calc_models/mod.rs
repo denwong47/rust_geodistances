@@ -6,11 +6,11 @@ pub use config::{
 };
 
 pub mod haversine;
-// pub mod vincenty;
+pub mod vincenty;
 
 pub use haversine::{
     Haversine
 };
-// pub use vincenty::{
-//     Vincenty
-// };
+pub use vincenty::{
+    Vincenty
+};

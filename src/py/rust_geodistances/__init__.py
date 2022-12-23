@@ -26,4 +26,4 @@ Use:
 - :func:`haversine.distance_from_point`
 """
 
-# vincenty:bin.CalculationMethod = bin.CalculationMethod.VINCENTY
+vincenty: bin.CalculationMethod = bin.CalculationMethod.VINCENTY

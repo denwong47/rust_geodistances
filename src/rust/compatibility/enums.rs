@@ -30,7 +30,7 @@ use crate::calc_models::traits::{
 
 use crate::calc_models::{
     Haversine,
-    // Vincenty,
+    Vincenty,
     config,
 };
 
@@ -55,7 +55,7 @@ pub enum CalculationMethod {
     // /// .. note::
     // ///     Algorithm derived from
     // ///     `Movable Type Scripts <https://www.movable-type.co.uk/scripts/latlong-vincenty.html>`_
-    // VINCENTY,
+    VINCENTY,
 }
 impl Default for CalculationMethod {
     fn default() -> Self { Self::HAVERSINE }
@@ -150,7 +150,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> F64Array1 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance_from_point,
-            // Self::VINCENTY => Vincenty::distance_from_point,
+            Self::VINCENTY => Vincenty::distance_from_point,
         };
 
         return f(s, e, settings);
@@ -165,7 +165,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> F64Array2 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance,
-            // Self::VINCENTY => Vincenty::distance,
+            Self::VINCENTY => Vincenty::distance,
         };
 
         return f(s, e, shape, settings);
@@ -181,6 +181,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         let f = match self {
             Self::HAVERSINE => Haversine::offset,
             // Self::VINCENTY => Vincenty::offset,
+            _ => Haversine::offset,
         };
 
         return f(s, distance, bearing, settings);
@@ -196,6 +197,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         let f = match self {
             Self::HAVERSINE => Haversine::within_distance_of_point,
             // Self::VINCENTY => Vincenty::within_distance_from_point,
+            _ => Haversine::within_distance_of_point,
         };
 
         return f(s, e, distance, settings);
@@ -212,6 +214,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         let f: Self::FnWithinDistance  = match self {
             Self::HAVERSINE => Haversine::within_distance,
             // Self::VINCENTY => Vincenty::within_distance,
+            _ => Haversine::within_distance,
         };
 
         return f(s, e, distance, shape, settings);
