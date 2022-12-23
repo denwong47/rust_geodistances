@@ -16,7 +16,7 @@ pub const ELLIPSE_WGS84_B:f64 = 6356.752314245;
 pub const ELLIPSE_WGS84_F:f64 = 1./298.257223563;
 
 pub const MAX_ITERATIONS:usize = 1000;
-pub const TOLERANCE:f64 = 1e-24;
+pub const TOLERANCE:f64 = 1e-12;
 
 pub const DEFAULT_WORKERS:usize = 4;
 

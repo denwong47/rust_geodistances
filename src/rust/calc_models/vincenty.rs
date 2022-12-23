@@ -45,8 +45,6 @@ use super::traits::{
     OffsetByVector
 };
 
-pub const ITERATIONS:u16 = 1000;
-
 ///  Vincenty solutions of geodescis on the ellipsoid
 ///  Adapted from https://www.movable-type.co.uk/scripts/latlong-vincenty.html
 ///
