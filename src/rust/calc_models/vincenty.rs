@@ -350,130 +350,158 @@ impl CalculateDistance for Vincenty {
 // }
 
 
-// #[duplicate_item(
-//     __vector_type__                 __impl_generics__;
-//     [ f64 ]                         [];
-//     [ &F64Array1 ]                  [];
-//     [ &F64ArcArray1 ]               [];
-//     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
-//     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
-// )]
-// impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
-//     #[allow(non_snake_case)]
-//     fn offset(
-//         s:&dyn LatLngArray,
-//         distance:__vector_type__,
-//         bearing:__vector_type__,
-//         settings: Option<&config::CalculationSettings>,
-//     ) -> F64LatLngArray {
-//         let bearing_r = bearing / 180. * PI;
+#[duplicate_item(
+    __vector_type__                 __impl_generics__   __idx__;
+    // [ f64 ]                         []                  [];
+    [ &F64Array1 ]                  []                  [ [idx] ];
+    [ &F64ArcArray1 ]               []                  [ [idx] ];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ]              [ [idx] ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ]              [ [idx] ];
+)]
+impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
+    #[allow(non_snake_case)]
+    fn offset(
+        s:&dyn LatLngArray,
+        distance:__vector_type__,
+        bearing:__vector_type__,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64LatLngArray {
+        let settings_default = &config::CalculationSettings::default();
 
-//         let (s_lat_r, s_lng_r) = s.as_rad();
+        // let eps:f64 = settings.unwrap_or(&settings_default).eps;
+        let tolerance:f64 = settings.unwrap_or(&settings_default).tolerance;
+        let ellipse_a:f64 = settings.unwrap_or(&settings_default).ellipse_a;
+        let ellipse_b:f64 = settings.unwrap_or(&settings_default).ellipse_b;
+        let ellipse_f:f64 = settings.unwrap_or(&settings_default).ellipse_f;
+        let max_iterations:usize = settings.unwrap_or(&settings_default).max_iterations;
 
-//         let sin_bearing_r = bearing_r.sin();
-//         let cos_bearing_r = bearing_r.cos();
+        let bearing_r = bearing / 180. * PI;
 
-//         let tan_u1 = (1.-settings.ellipse_f) * s_lat_r.tan();
-//         let cos_u1 = 1. / ((1. + tan_u1.powi(2))).sqrt();
-//         let sin_u1 = tan_u1 * cos_u1;
+        let s_latlng_r= s.to_rad();
+        let (s_lat_r, s_lng_r) = (
+            s_latlng_r.column(0), s_latlng_r.column(1)
+        );
 
-//         let ang_dist_on_sphere_from_equator = (tan_u1).atan2(cos_bearing_r); // ang_dist_on_sphere_from_equator = angular distance on the sphere from the equator to P1
-//         let sin_azimuth_of_geodesic_at_equator = cos_u1 * sin_bearing_r;          // α = azimuth of the geodesic at the equator
-//         let cos_sq_azimuth_of_geodesic_at_equator = 1. - sin_azimuth_of_geodesic_at_equator.powi(2);
-//         let _uSq = cos_sq_azimuth_of_geodesic_at_equator * (settings.ellipse_a.powi(2) - settings.ellipse_b.powi(2)) / (settings.ellipse_b.powi(2));
-//         let _a = 1. + _uSq/16384.*(4096.+_uSq*(-768.+_uSq*(320.-175.*_uSq)));
-//         let _b = _uSq/1024. * (256.+_uSq*(-128.+_uSq*(74.-47.*_uSq)));
+        let shape = (s_latlng_r.shape()[0], );
 
-//         let mut sin_ang_dist = 0.;
-//         let mut cos_ang_dist = 0.; // ang_dist = angular distance P₁ P₂ on the sphere
-//         let mut cos_2_ang_dist_from_equator_bisect = 0.; // σₘ = angular distance on the sphere from the equator to the midpoint of the line
+        let sin_bearing_r = bearing_r.sin();
+        let cos_bearing_r = bearing_r.cos();
 
-//         drop(&sin_ang_dist);
-//         drop(&cos_ang_dist);
-//         drop(&cos_2_ang_dist_from_equator_bisect);
+        let tan_u1 = s_lat_r.tan() * (1.-ellipse_f);
+        let cos_u1 = 1. / ((1. + tan_u1.powi(2))).sqrt();
+        let sin_u1 = &tan_u1 * &cos_u1;
 
-//         let mut ang_dist = distance / (settings.ellipse_b*_a);
-//         let mut ang_dist_dash = 0.;
-//         let mut delta_ang_dist = 0.;
+        let ang_dist_on_sphere_from_equator = tan_u1.atan2(cos_bearing_r.view()); // ang_dist_on_sphere_from_equator = angular distance on the sphere from the equator to P1
+        let sin_azimuth_of_geodesic_at_equator = &cos_u1 * &sin_bearing_r;          // α = azimuth of the geodesic at the equator
+        let cos_sq_azimuth_of_geodesic_at_equator = 1. - sin_azimuth_of_geodesic_at_equator.powi(2);
+        let uSq = &cos_sq_azimuth_of_geodesic_at_equator * (ellipse_a.powi(2) - ellipse_b.powi(2)) / (ellipse_b.powi(2));
+        let _a = 1. + &uSq/16384.*(4096.+&uSq*(-768.+&uSq*(320.-175.*&uSq)));
+        let _b = &uSq/1024. * (256.+&uSq*(-128.+&uSq*(74.-47.*&uSq)));
 
-//         drop(&ang_dist_dash);
-//         drop(&delta_ang_dist);
+        let mut sin_ang_dist = F64Array1::zeros(shape);
+        let mut cos_ang_dist = F64Array1::zeros(shape); // ang_dist = angular distance P₁ P₂ on the sphere
+        let mut cos_2_ang_dist_from_equator_bisect = F64Array1::zeros(shape); // σₘ = angular distance on the sphere from the equator to the midpoint of the line
 
-//         for iteration in 0..ITERATIONS {
-//             cos_2_ang_dist_from_equator_bisect = (2.*ang_dist_on_sphere_from_equator + ang_dist).cos();
-//             sin_ang_dist = ang_dist.sin();
-//             cos_ang_dist = ang_dist.cos();
-//             delta_ang_dist = {
-//                 _b*sin_ang_dist*(
-//                     cos_2_ang_dist_from_equator_bisect
-//                     + _b/4.*(
-//                         cos_ang_dist*(
-//                             -1.+2.*cos_2_ang_dist_from_equator_bisect.powi(2)
-//                         )
-//                         - _b/6.*cos_2_ang_dist_from_equator_bisect*(
-//                             -3.+4.*sin_ang_dist.powi(2)
-//                         )*(
-//                             -3.+4.*cos_2_ang_dist_from_equator_bisect.powi(2)
-//                         )
-//                     )
-//                 )
-//             };
-//             ang_dist_dash = ang_dist;
-//             ang_dist = distance / (settings.ellipse_b*_a) + delta_ang_dist;
+        drop(&sin_ang_dist);
+        drop(&cos_ang_dist);
+        drop(&cos_2_ang_dist_from_equator_bisect);
 
-//             if (ang_dist-ang_dist_dash).abs() <= EPS { break }
+        let mut ang_dist = distance / (ellipse_b*&_a);
+        let mut ang_dist_dash = F64Array1::zeros(shape);
 
-//             if iteration>ITERATIONS-1 {
-//                 // Vincenty failed to converge
-//                 return None
-//             }
-//         }
+        drop(&ang_dist_dash);
 
-//         let _x = sin_u1*sin_ang_dist - cos_u1*cos_ang_dist*cos_bearing_r;
-//         let e_lat_r = {
-//             (
-//                 sin_u1*cos_ang_dist
-//                 + cos_u1*sin_ang_dist*cos_bearing_r
-//             ).atan2(
-//                 (
-//                     1.-settings.ellipse_f
-//                 )*(
-//                     sin_azimuth_of_geodesic_at_equator.powi(2)
-//                     + _x.powi(2)
-//                 ).sqrt()
-//             )
-//         };
-//         let _lambda = (sin_ang_dist*sin_bearing_r).atan2(cos_u1*cos_ang_dist - sin_u1*sin_ang_dist*cos_bearing_r);
-//         let _c = {
-//             settings.ellipse_f / 16.
-//             *cos_sq_azimuth_of_geodesic_at_equator
-//             *(
-//                 4.+settings.ellipse_f*(4.-3.*cos_sq_azimuth_of_geodesic_at_equator)
-//             )
-//         };
-//         let e_lng_r = {
-//             s_lng_r
-//             + _lambda
-//             - (
-//                 (1.-_c)
-//                 * settings.ellipse_f
-//                 * sin_azimuth_of_geodesic_at_equator
-//                 * (
-//                     ang_dist
-//                     + _c*sin_ang_dist*(
-//                         cos_2_ang_dist_from_equator_bisect
-//                         +_c*cos_ang_dist*(
-//                             -1.
-//                             +2.*cos_2_ang_dist_from_equator_bisect.powi(2)
-//                         )
-//                     )
-//                 )
-//             )
-//         };
+        for _ in 0..max_iterations {
+            cos_2_ang_dist_from_equator_bisect = (2.*&ang_dist_on_sphere_from_equator + &ang_dist).cos();
+            sin_ang_dist = ang_dist.sin();
+            cos_ang_dist = ang_dist.cos();
 
-//         return Some(LatLng::new_from_rad(
-//             e_lat_r,
-//             e_lng_r,
-//         ));
-//     }
-// }
+            let next_iteration_mask = (&ang_dist-ang_dist_dash).abs().gt(&tolerance);
+
+            // If nothing needs to be iterated any more, stop the for loop
+            if !next_iteration_mask.any() { break }
+
+            ang_dist_dash = ang_dist.clone();
+
+            {
+                ang_dist.indexed_iter_mut()
+                        .map(
+                            |(idx, _ang_dist)| {
+                                if next_iteration_mask[idx] {
+                                    let _delta_ang_dist = _b[idx]*sin_ang_dist[idx]*(
+                                        cos_2_ang_dist_from_equator_bisect[idx]
+                                        + _b[idx]/4.*(
+                                            cos_ang_dist[idx]*(
+                                                -1.+2.*cos_2_ang_dist_from_equator_bisect[idx].powi(2)
+                                            )
+                                            - _b[idx]/6.*cos_2_ang_dist_from_equator_bisect[idx]*(
+                                                -3.+4.*sin_ang_dist[idx].powi(2)
+                                            )*(
+                                                -3.+4.*cos_2_ang_dist_from_equator_bisect[idx].powi(2)
+                                            )
+                                        )
+                                    );
+
+                                    *_ang_dist = distance[idx] / (ellipse_b*_a[idx]) + _delta_ang_dist;
+                                }
+                            }
+                        )
+                        .count()
+            };
+        }
+
+        let _x = &sin_u1*&sin_ang_dist - &cos_u1*&cos_ang_dist*&cos_bearing_r;
+        let e_lat_r = {
+            (
+                &sin_u1*&cos_ang_dist
+                + &cos_u1*&sin_ang_dist*&cos_bearing_r
+            ).atan2(
+                (
+                    1.-ellipse_f
+                )*(
+                    &sin_azimuth_of_geodesic_at_equator.powi(2)
+                    + &_x.powi(2)
+                ).sqrt()
+            )
+        };
+        let _lambda = (&sin_ang_dist*&sin_bearing_r).atan2(&cos_u1*&cos_ang_dist - &sin_u1*&sin_ang_dist*&cos_bearing_r);
+        let _c = {
+            ellipse_f / 16.
+            *&cos_sq_azimuth_of_geodesic_at_equator
+            *(
+                4.+ellipse_f*(4.-3.*&cos_sq_azimuth_of_geodesic_at_equator)
+            )
+        };
+        let e_lng_r = {
+            &s_lng_r
+            + &_lambda
+            - (
+                (1.-&_c)
+                * ellipse_f
+                * &sin_azimuth_of_geodesic_at_equator
+                * (
+                    &ang_dist
+                    + &_c*&sin_ang_dist*(
+                        &cos_2_ang_dist_from_equator_bisect
+                        +&_c*&cos_ang_dist*(
+                            -1.
+                            +2.*&cos_2_ang_dist_from_equator_bisect.powi(2)
+                        )
+                    )
+                )
+            )
+        };
+
+        let mut e_latlng_r = {
+            F64LatLngArray::zeros((e_lng_r.len(), 0))
+        };
+        // Push the data through.
+        e_latlng_r.push_column(e_lat_r.view()).unwrap();
+        e_latlng_r.push_column(e_lng_r.view()).unwrap();
+
+        e_latlng_r = e_latlng_r.to_dec();
+        e_latlng_r.normalize();
+
+        return e_latlng_r;
+    }
+}
