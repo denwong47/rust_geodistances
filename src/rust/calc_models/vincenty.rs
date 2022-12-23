@@ -533,7 +533,7 @@ impl OffsetByVector<f64> for Vincenty {
         bearing:f64,
         settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray {
-        let shape = (s._proxied_shape()[0],);
+        let shape = (s.shape()[0],);
         let distance_arr = F64Array::from_elem(shape, distance);
         let bearing_arr = F64Array::from_elem(shape, bearing);
 

@@ -80,6 +80,13 @@ pub trait CalculationInterfaceInternal<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
+    fn _distance_within_array(
+        &self,
+        s:&dyn LatLngArray,
+        len:usize,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array2;
+
     fn _offset(
         &self,
         s:&dyn LatLngArray,
@@ -169,6 +176,24 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         };
 
         return f(s, e, shape, settings);
+    }
+
+    fn _distance_within_array(
+        &self,
+        s:&dyn LatLngArray,
+        len:usize,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array2 {
+        let shape = (len, len);
+
+        // TODO This is not the intended implentation; this is meant to only calculate
+        // the lower half of the grid below the diagonal.
+        return CalculationInterfaceInternal::<__vector_type__>::_distance(
+            self,
+            s, s,
+            shape,
+            settings,
+        )
     }
 
     fn _offset(

@@ -125,18 +125,37 @@ impl enums::CalculationMethod {
         settings: Option< &config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
-        let shape = (s_native.shape()[0], e_native.shape()[0]);
+        // TODO Use identity check to check if we can save some calculation:
+        //  s.is(e);
 
-        let result = {
-            CalculationInterfaceInternal::<f64>::_distance(
-                self,
-                &s.to_owned_array(), &e.to_owned_array(),
-                shape,
-                settings,
-            )
-            .to_pyarray(py)
+        let result = if !s.is(e){
+            let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
+            let shape = (s_native.shape()[0], e_native.shape()[0]);
+
+            {
+                CalculationInterfaceInternal::<f64>::_distance(
+                    self,
+                    &s.to_owned_array(), &e.to_owned_array(),
+                    shape,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
+        } else {
+            let s_native = &s.to_owned_array();
+            let len = s_native.shape()[0];
+
+            {
+                CalculationInterfaceInternal::<f64>::_distance_within_array(
+                    self,
+                    &s.to_owned_array(),
+                    len,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
         };
+
 
         return Ok(result.into_py(py));
     }
