@@ -16,6 +16,10 @@ use numpy::{
 
 use ndarray_numeric::{
     ArrayWithBoolIterMethods,
+    ArrayFromDuplicatedRows,
+
+    F64Array1,
+    F64Array2,
 };
 
 use crate::calc_models::config;
@@ -137,14 +141,54 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
-    // fn offset(
+    #[pyo3(text_signature = "($self, s, e, distance, bearing, *, settings)")]
+    /// Offset an array of coordinates by a vector.
+    fn offset(
+        &self,
+        s: &PyArray<f64, Ix2>,
+        distance: f64,
+        bearing: f64,
+        settings: Option< &config::CalculationSettings>,
+        py: Python<'_>,
+    ) -> PyResult<PyObject> {
+        let result = {
+            CalculationInterfaceInternal::<f64>::_offset(
+                self,
+                &s.to_owned_array(),
+                distance,
+                bearing,
+                settings,
+            )
+            .to_pyarray(py)
+        };
+
+        return Ok(result.into_py(py));
+    }
+
+    // TODO Check how arrays are implemented in offset again and see if this is possible at all
+    // #[pyo3(text_signature = "($self, s, e, distance, bearing, *, settings)")]
+    // /// Offset an array of coordinates by a vectors of equal length.
+    // fn offset_group(
     //     &self,
     //     s: &PyArray<f64, Ix2>,
-    //     distance: T,
-    //     bearing: T,
+    //     distance: &PyArray<f64, Ix1>,
+    //     bearing: &PyArray<f64, Ix1>,
     //     settings: Option< &config::CalculationSettings>,
     //     py: Python<'_>,
-    // ) -> PyResult<PyObject>;
+    // ) -> PyResult<PyObject> {
+    //     let result = {
+    //         CalculationInterfaceInternal::<&F64Array1>::_offset(
+    //             self,
+    //             &s.to_owned_array(),
+    //             &F64Array2::from_duplicated_rows(distance.to_owned_array().view()),
+    //             &F64Array2::from_duplicated_rows(bearing.to_owned_array().view()),
+    //             settings,
+    //         )
+    //         .to_pyarray(py)
+    //     };
+
+    //     return Ok(result.into_py(py));
+    // }
 
     #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     /// Check if array of lat-long coordinates is within great-circle distance of point.

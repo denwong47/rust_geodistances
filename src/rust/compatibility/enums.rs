@@ -180,8 +180,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> F64LatLngArray {
         let f = match self {
             Self::HAVERSINE => Haversine::offset,
-            // Self::VINCENTY => Vincenty::offset,
-            _ => Haversine::offset,
+            Self::VINCENTY => Vincenty::offset,
         };
 
         return f(s, distance, bearing, settings);
@@ -196,8 +195,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> BoolArray1 {
         let f = match self {
             Self::HAVERSINE => Haversine::within_distance_of_point,
-            // Self::VINCENTY => Vincenty::within_distance_from_point,
-            _ => Haversine::within_distance_of_point,
+            Self::VINCENTY => Vincenty::within_distance_of_point,
         };
 
         return f(s, e, distance, settings);
@@ -213,8 +211,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> BoolArray2 {
         let f: Self::FnWithinDistance  = match self {
             Self::HAVERSINE => Haversine::within_distance,
-            // Self::VINCENTY => Vincenty::within_distance,
-            _ => Haversine::within_distance,
+            Self::VINCENTY => Vincenty::within_distance,
         };
 
         return f(s, e, distance, shape, settings);

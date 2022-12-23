@@ -1,9 +1,12 @@
 use std::f64::consts::PI;
 
-use duplicate::duplicate_item;
+use duplicate::{
+    duplicate,
+    duplicate_item
+};
 
 use ndarray::{
-    Array1,
+    arr1,
     Axis,
     Ix1,
     Zip,
@@ -320,44 +323,57 @@ impl CalculateDistance for Vincenty {
     }
 }
 
-// #[duplicate_item(
-//     __vector_type__                 __impl_generics__;
-//     [ f64 ]                         [];
-//     [ &F64Array1 ]                  [];
-//     [ &F64ArcArray1 ]               [];
-//     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
-//     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
-// )]
-// impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
-//     fn within_distance_of_point(
-//         s:&dyn LatLng,
-//         e:&dyn LatLngArray,
-//         distance:__vector_type__,
-//         settings: Option<&config::CalculationSettings>,
-//     ) -> BoolArray1 {
-//         return (Self::distance_from_point(s, e, settings,) - distance).le(&0.);
-//     }
 
-//     fn within_distance(
-//         s:&dyn LatLngArray,
-//         e:&dyn LatLngArray,
-//         distance: __vector_type__,
-//         shape: (usize, usize),
-//         settings: Option<&config::CalculationSettings>,
-//     ) -> BoolArray2 {
-//         return (Self::distance(s, e, shape, settings,) - distance).le(&0.);
-//     }
-// }
+#[duplicate_item(
+    __vector_type__                 __impl_generics__;
+    [ f64 ]                         [];
+    [ &F64Array1 ]                  [];
+    [ &F64ArcArray1 ]               [];
+    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
+    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
+)]
+impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
+    fn within_distance_of_point(
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        distance:__vector_type__,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray1 {
+        return (Self::distance_from_point(s, e, settings,) - distance).le(&0.);
+    }
+
+    fn within_distance(
+        s:&dyn LatLngArray,
+        e:&dyn LatLngArray,
+        distance: __vector_type__,
+        shape: (usize, usize),
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2 {
+        return (Self::distance(s, e, shape, settings,) - distance).le(&0.);
+    }
+}
 
 
 #[duplicate_item(
-    __vector_type__                 __impl_generics__   __idx__;
-    // [ f64 ]                         []                  [];
-    [ &F64Array1 ]                  []                  [ [idx] ];
-    [ &F64ArcArray1 ]               []                  [ [idx] ];
-    [ &F64ArrayView<'a, Ix1> ]      [ 'a ]              [ [idx] ];
-    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ]              [ [idx] ];
+    // Arrays
+    [
+        __vector_type__      [ &F64Array1 ]
+        __impl_generics__    []
+    ]
+    [
+        __vector_type__      [ &F64ArcArray1 ]
+        __impl_generics__    []
+    ]
+    [
+        __vector_type__      [ &F64ArrayView<'a, Ix1> ]
+        __impl_generics__    [ 'a ]
+    ]
+    [
+        __vector_type__      [ &F64ArrayViewMut<'a, Ix1> ]
+        __impl_generics__    [ 'a ]
+    ]
 )]
+/// Array implementation
 impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
     #[allow(non_snake_case)]
     fn offset(
@@ -503,5 +519,29 @@ impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
         e_latlng_r.normalize();
 
         return e_latlng_r;
+    }
+}
+
+
+/// Scalar implementation
+///
+/// This just call the Array implementation of the same thing.
+impl OffsetByVector<f64> for Vincenty {
+    #[allow(non_snake_case)]
+    fn offset(
+        s:&dyn LatLngArray,
+        distance:f64,
+        bearing:f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64LatLngArray {
+        let shape = (s._proxied_shape()[0],);
+        let distance_arr = F64Array::from_elem(shape, distance);
+        let bearing_arr = F64Array::from_elem(shape, bearing);
+
+        return Self::offset(
+            s,
+            &distance_arr, &bearing_arr,
+            settings
+        );
     }
 }
