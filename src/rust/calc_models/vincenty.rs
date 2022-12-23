@@ -72,6 +72,8 @@ impl CalculateDistance for Vincenty {
         let ellipse_f:f64 = settings.unwrap_or(&settings_default).ellipse_f;
         let max_iterations:usize = settings.unwrap_or(&settings_default).max_iterations;
 
+        assert!(tolerance>0., "`tolerance` must be positive, yet {:?} provided.", tolerance);
+
         let diff_lng_r = e_lng_r - *s_lng_r;
         let tan_reduced_s_lat_r = (1.-ellipse_f) * s_lat_r.tan();
         let cos_reduced_s_lat_r = (tan_reduced_s_lat_r.powi(2) + 1.).sqrt().powi(-1);

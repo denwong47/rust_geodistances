@@ -86,8 +86,18 @@ pub struct CalculationSettings{
     ///
     /// **Type:** numpy.float64
     ///
+    /// Positive value only.
+    ///
     /// Used in Vincenty calculations. The iterative process of Vincenty will
     /// stop once the difference is below this threshold.
+    ///
+    /// This check is applied before the ellpisoid datums are applied, thus it
+    /// is more related to the radian angular distance instead of linear
+    /// distance. This does NOT mean that resultant values will be accurate to
+    /// +/- ``tolerance``.
+    /// (Roughly it would be +/- ``tolerance`` * ``ellipse_b``)
+    ///
+    /// Treat this value as arbitrary, only to be compared with itself.
     pub tolerance:f64,
 
     #[pyo3(get, set)]

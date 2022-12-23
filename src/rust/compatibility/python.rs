@@ -16,10 +16,10 @@ use numpy::{
 
 use ndarray_numeric::{
     ArrayWithBoolIterMethods,
-    ArrayFromDuplicatedRows,
+    // ArrayFromDuplicatedRows,
 
-    F64Array1,
-    F64Array2,
+    // F64Array1,
+    // F64Array2,
 };
 
 use crate::calc_models::config;
