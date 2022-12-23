@@ -130,26 +130,22 @@ impl enums::CalculationMethod {
 
         let result = if !s.is(e){
             let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
-            let shape = (s_native.shape()[0], e_native.shape()[0]);
 
             {
                 CalculationInterfaceInternal::<f64>::_distance(
                     self,
                     &s.to_owned_array(), &e.to_owned_array(),
-                    shape,
                     settings,
                 )
                 .to_pyarray(py)
             }
         } else {
             let s_native = &s.to_owned_array();
-            let len = s_native.shape()[0];
 
             {
                 CalculationInterfaceInternal::<f64>::_distance_within_array(
                     self,
                     &s.to_owned_array(),
-                    len,
                     settings,
                 )
                 .to_pyarray(py)
@@ -300,14 +296,12 @@ impl enums::CalculationMethod {
         py: Python<'_>,
     ) -> PyResult<PyObject> {
         let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
-        let shape = (s_native.shape()[0], e_native.shape()[0]);
 
         let result = {
             CalculationInterfaceInternal::<f64>::_within_distance(
                 self,
                 &s.to_owned_array(), &e.to_owned_array(),
                 distance,
-                shape,
                 settings,
             )
             .to_pyarray(py)
@@ -408,7 +402,6 @@ impl enums::CalculationMethod {
         py: Python<'_>,
     ) -> PyResult<PyObject> {
         let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
-        let shape = (s_native.shape()[0], e_native.shape()[0]);
 
         let result = {
             PyTuple::new(
@@ -417,7 +410,6 @@ impl enums::CalculationMethod {
                     self,
                     s_native, e_native,
                     distance,
-                    shape,
                     settings,
                 )
                 .rows()

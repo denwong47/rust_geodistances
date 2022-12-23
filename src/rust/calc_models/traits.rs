@@ -199,7 +199,6 @@ pub trait CalculateDistance {
     fn distance(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 }
@@ -279,7 +278,6 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: T,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 }

@@ -76,14 +76,12 @@ pub trait CalculationInterfaceInternal<T> {
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
     fn _distance_within_array(
         &self,
         s:&dyn LatLngArray,
-        len:usize,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
@@ -108,7 +106,6 @@ pub trait CalculationInterfaceInternal<T> {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance:f64,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
@@ -125,7 +122,6 @@ pub trait CalculationInterfaceInternal<T> {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64,
-        shape: (usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> Vec<Vec<usize>>;
 
@@ -144,7 +140,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance:f64,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
@@ -167,7 +162,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let f = match self {
@@ -175,23 +169,21 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
             Self::VINCENTY => Vincenty::distance,
         };
 
-        return f(s, e, shape, settings);
+        return f(s, e, settings);
     }
 
     fn _distance_within_array(
         &self,
         s:&dyn LatLngArray,
-        len:usize,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
-        let shape = (len, len);
+        let shape = (s.shape()[0], s.shape()[0]);
 
         // TODO This is not the intended implentation; this is meant to only calculate
         // the lower half of the grid below the diagonal.
         return CalculationInterfaceInternal::<__vector_type__>::_distance(
             self,
             s, s,
-            shape,
             settings,
         )
     }
@@ -231,7 +223,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64, // Restrict to f64 here
-        shape: (usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
         let f: Self::FnWithinDistance  = match self {
@@ -239,7 +230,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
             Self::VINCENTY => Vincenty::within_distance,
         };
 
-        return f(s, e, distance, shape, settings);
+        return f(s, e, distance, settings);
     }
 
     /// Does this belong here, or in lib.rs?
@@ -248,7 +239,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64,
-        shape: (usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> Vec<Vec<usize>> {
         return CalculationInterfaceInternal
@@ -256,7 +246,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
                ::_within_distance(
                     self,
                     s, e,
-                    distance, shape,
+                    distance,
                     settings,
                 ).to_vec_of_indices();
     }

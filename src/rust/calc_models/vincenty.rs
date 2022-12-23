@@ -281,11 +281,12 @@ impl CalculateDistance for Vincenty {
     fn distance(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        shape:(usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
         let (s_latlng_r, e_latlng_r) = (s.to_rad(), e.to_rad());
         let (e_lat_r, e_lng_r) = (e_latlng_r.column(0), e_latlng_r.column(1));
+
+        let shape = (s.shape()[0], e.shape()[0]);
 
         let workers: usize = settings.unwrap_or(
             &config::CalculationSettings::default()
@@ -345,10 +346,9 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: __vector_type__,
-        shape: (usize, usize),
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
-        return (Self::distance(s, e, shape, settings,) - distance).le(&0.);
+        return (Self::distance(s, e, settings,) - distance).le(&0.);
     }
 }
 
