@@ -8,7 +8,7 @@ authors = [
     {name = "Denny Wong Pui-chung", email = "denwong47@hotmail.com"},
 ]
 version = "0.1.0"
-description = "Python package for Geodistance calculations with both Haversine and Vincenty, using a Rust backend."
+description = "Python Library with a Rust backend to calculate Geodistances using both Haversine and Vincenty methods."
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies= [
     "numpy",
+    "maturin",
 ]
 
 [project.optional-dependencies]
@@ -26,9 +27,6 @@ dev = [
     "pydata-sphinx-theme",
     "pytest",
     "sphinx",
-]
-tests = [
-    "sklearn",
 ]
 
 [project.urls]
@@ -52,7 +50,6 @@ sections=[
     "STDLIB",
     "THIRDPARTY",
     "FIRSTPARTY",
-    "FORESTREET",
     "LOCALFOLDER",
 ]
 known_third_party = [

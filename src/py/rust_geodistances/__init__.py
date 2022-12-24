@@ -1,97 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-============================================
- Rust-accelerated Geodistances Calculations
-============================================
+================================
+ rust_geodistances
+================================
 
-Python package for Geodistance calculations with both Haversine and Vincenty, using a Rust backend.
+Python Library with a Rust backend to calculate Geodistances using both Haversine and Vincenty methods.
 
 This project includes a Rust binary backend:
-- :mod:`lib_rust_geodistances` which can be loaded as::
 
-    from rust_geodistances import bin
+- :mod:`lib_rust_geodistances` which can be loaded as
+  :attr:`~rust_geodistances.bin`.
 """
 
+from . import decorators
 from . import lib_rust_geodistances as bin
+from .lib_rust_geodistances import CalculationMethod, CalculationSettings
 
-CalculationMethod = bin.CalculationMethod
+haversine: bin.CalculationMethod = bin.CalculationMethod.HAVERSINE
 """
-Psuedo-Enum class for passing as the ``method`` argument to Rust functions.
+Enum instance containing Haversine calculations methods.
 
-.. note::
-    This class is defined in Rust, which does not have access to Python's actual
-    :class:`~enum.Enum` class. While this class behave similarly to a Python
-    Enum, it is NOT a subclass of :class:`enum.Enum`.
+Use:
 
-The main 3 supported members are:
-- :attr:`CalculationMethod.HAVERSINE`
-- :attr:`CalculationMethod.VINCENTY`
-- :attr:`CalculationMethod.CARTESIAN`
+- :func:`haversine.distance`
+- :func:`haversine.distance_from_point`
 """
 
-distance = bin.distance
-"""
-Calculating distance beteen two points.
-
-Parameters
-----------
-source : Tuple[np.float64, np.float64]
-    Source Coordinates.
-
-dest : Tuple[np.float64, np.float64]
-    Destination Coordinates.
-
-method : CalculationMethod
-    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
-    used.
-
-Returns
--------
-float
-    A floating point number indicating the distance between the two points.
-"""
-
-distance_map = bin.distance_map
-"""
-Map distance between two array of Latitude/Longitudes.
-
-Parameters
-----------
-input : List[ List[ Tuple[ np.float64, np.float64 ] ] ]
-    An :class:`list` or :class:`tuple` of 1 or 2 members, each being a :class:`list` of
-    Latitude/Longitudes pair in :class:`np.float64` format.
-
-method : CalculationMethod
-    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
-    used.
-
-Returns
--------
-List[ List[ np.float64 ] ]
-    The distance map in kilometres.
-"""
-
-offset = bin.offset
-"""
-New coordinates by offsetting from another via distance and bearing.
-
-Parameters
-----------
-start : Tuple[np.float64, np.float64]
-    Starting Coordinates.
-
-distance : np.float64
-    Distance to the new point.
-
-bearing : np.float64
-    Bearing to the new point; 0º being North.
-
-method : CalculationMethod
-    A member of :class:`.CalculationMethod` indicating the calculation algorithm to be
-    used.
-
-Returns
--------
-Tuple[float, float]
-    A floating point number indicating the distance between the two points.
-"""
+vincenty: bin.CalculationMethod = bin.CalculationMethod.VINCENTY

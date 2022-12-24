@@ -13,6 +13,7 @@ Subpackages
    :maxdepth: 4
 
    rust_geodistances.config
+   rust_geodistances.decorators
 
 Submodules
 ----------
