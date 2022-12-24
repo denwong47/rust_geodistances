@@ -177,8 +177,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
-        let shape = (s.shape()[0], s.shape()[0]);
-
         // TODO This is not the intended implentation; this is meant to only calculate
         // the lower half of the grid below the diagonal.
         return CalculationInterfaceInternal::<__vector_type__>::_distance(

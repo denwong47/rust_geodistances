@@ -134,7 +134,7 @@ impl enums::CalculationMethod {
             {
                 CalculationInterfaceInternal::<f64>::_distance(
                     self,
-                    &s.to_owned_array(), &e.to_owned_array(),
+                    s_native, e_native,
                     settings,
                 )
                 .to_pyarray(py)
@@ -145,7 +145,7 @@ impl enums::CalculationMethod {
             {
                 CalculationInterfaceInternal::<f64>::_distance_within_array(
                     self,
-                    &s.to_owned_array(),
+                    s_native,
                     settings,
                 )
                 .to_pyarray(py)
@@ -300,7 +300,7 @@ impl enums::CalculationMethod {
         let result = {
             CalculationInterfaceInternal::<f64>::_within_distance(
                 self,
-                &s.to_owned_array(), &e.to_owned_array(),
+                s_native, e_native,
                 distance,
                 settings,
             )
