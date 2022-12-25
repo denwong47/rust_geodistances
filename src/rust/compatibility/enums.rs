@@ -179,11 +179,12 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> F64Array2 {
         // TODO This is not the intended implentation; this is meant to only calculate
         // the lower half of the grid below the diagonal.
-        return CalculationInterfaceInternal::<__vector_type__>::_distance(
-            self,
-            s, s,
-            settings,
-        )
+        let f = match self {
+            Self::HAVERSINE => Haversine::distance_within_array,
+            Self::VINCENTY => Vincenty::distance_within_array,
+        };
+
+        return f(s, settings);
     }
 
     fn _offset(
