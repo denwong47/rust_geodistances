@@ -155,9 +155,9 @@ mod test_distance {
         assert!(
             (
                 __method__::distance_from_point(&s_latlng.view(), &e_latlng, None)
-                * 1e10
+                * 1e6
             ).floor()
-            == (&__result__ * 1e10).floor()
+            == (&__result__ * 1e6).floor()
         );
     }
 
