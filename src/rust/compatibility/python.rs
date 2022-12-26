@@ -182,6 +182,9 @@ impl enums::CalculationMethod {
     #[pyo3(text_signature = "($self, s, e, distance, bearing, *, settings)")]
     /// Displace an array of coordinates by a vector.
     ///
+    /// .. versionchanged:: 0.2.0
+    ///     Renamed function from :func:`offset` to :func:`displace`.
+    ///
     /// Parameters
     /// ----------
     /// s: numpy.ndarray
