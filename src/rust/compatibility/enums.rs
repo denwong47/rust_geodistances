@@ -109,6 +109,13 @@ pub trait CalculationInterfaceInternal<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
+    fn _within_distance_among_array(
+        &self,
+        s:&dyn LatLngArray,
+        distance: f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2;
+
     fn _indices_within_distance_of_point(
         &self,
         s:&dyn LatLng,
@@ -230,6 +237,20 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         };
 
         return f(s, e, distance, settings);
+    }
+
+    fn _within_distance_among_array(
+        &self,
+        s:&dyn LatLngArray,
+        distance: f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2 {
+        let f  = match self {
+            Self::HAVERSINE => Haversine::within_distance_among_array,
+            Self::VINCENTY => Vincenty::within_distance_among_array,
+        };
+
+        return f(s, distance, settings);
     }
 
     /// Does this belong here, or in lib.rs?

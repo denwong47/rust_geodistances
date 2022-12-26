@@ -295,16 +295,31 @@ impl enums::CalculationMethod {
         settings: Option< &config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
 
-        let result = {
-            CalculationInterfaceInternal::<f64>::_within_distance(
-                self,
-                s_native, e_native,
-                distance,
-                settings,
-            )
-            .to_pyarray(py)
+        let result = if !s.is(e){
+            let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
+
+            {
+                CalculationInterfaceInternal::<f64>::_within_distance(
+                    self,
+                    s_native, e_native,
+                    distance,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
+        } else {
+            let s_native = &s.to_owned_array();
+
+            {
+                CalculationInterfaceInternal::<f64>::_within_distance_among_array(
+                    self,
+                    s_native,
+                    distance,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
         };
 
         return Ok(result.into_py(py));
@@ -401,14 +416,32 @@ impl enums::CalculationMethod {
         settings: Option<&config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
 
-        let result = {
+        let result = if !s.is(e){
+            let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
+
             PyTuple::new(
                 py,
                 CalculationInterfaceInternal::<f64>::_within_distance(
                     self,
                     s_native, e_native,
+                    distance,
+                    settings,
+                )
+                .rows()
+                .into_iter()
+                .map(
+                    |row| row.indices().to_pyarray(py)
+                )
+            )
+        } else {
+            let s_native = &s.to_owned_array();
+
+            PyTuple::new(
+                py,
+                CalculationInterfaceInternal::<f64>::_within_distance_among_array(
+                    self,
+                    s_native,
                     distance,
                     settings,
                 )
