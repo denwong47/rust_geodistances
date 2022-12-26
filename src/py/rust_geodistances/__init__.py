@@ -20,7 +20,7 @@ bin = lib_rust_geodistances
 Alias for :mod:`~rust_geodistances.lib_rust_geodistances`.
 """
 
-haversine: bin.CalculationMethod = bin.CalculationMethod.HAVERSINE
+haversine = bin.CalculationMethod.HAVERSINE
 """
 Enum instance containing Haversine calculations methods.
 
@@ -30,4 +30,12 @@ Use:
 - :func:`haversine.distance_from_point`
 """
 
-vincenty: bin.CalculationMethod = bin.CalculationMethod.VINCENTY
+vincenty = bin.CalculationMethod.VINCENTY
+"""
+Enum instance containing Vincenty calculations methods.
+
+Use:
+
+- :func:`vincenty.distance`
+- :func:`vincenty.distance_from_point`
+"""
