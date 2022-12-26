@@ -328,15 +328,18 @@ impl CalculateDistance for Vincenty {
         s:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
-        let s_latlng_r = s.to_rad();
+        let s_owned = s.to_owned();
 
         let workers: usize = settings.unwrap_or(
             &config::CalculationSettings::default()
         ).workers;
 
         return F64Array2::from_mapped_array2_fn(
-            &s_latlng_r,
-            | s, e | Self::distance_from_point(&s, &e.to_owned(), settings),
+            &s_owned.view(),
+            | s, e | {
+                // println!("sn={:?} en={:?}", &s, &e);
+                Self::distance_from_point(&s, &e.to_owned(), settings)
+            },
             workers,
             Some(true),
         );
