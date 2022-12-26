@@ -8,13 +8,17 @@ Python Library with a Rust backend to calculate Geodistances using both Haversin
 
 This project includes a Rust binary backend:
 
-- :mod:`lib_rust_geodistances` which can be loaded as
+- :mod:`~rust_geodistances.lib_rust_geodistances` which can be loaded as
   :attr:`~rust_geodistances.bin`.
 """
 
-from . import decorators
-from . import lib_rust_geodistances as bin
+from . import decorators, lib_rust_geodistances
 from .lib_rust_geodistances import CalculationMethod, CalculationSettings
+
+bin = lib_rust_geodistances
+"""
+Alias for :mod:`~rust_geodistances.lib_rust_geodistances`.
+"""
 
 haversine: bin.CalculationMethod = bin.CalculationMethod.HAVERSINE
 """

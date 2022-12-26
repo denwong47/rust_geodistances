@@ -7,7 +7,7 @@ name = "rust_geodistances"
 authors = [
     {name = "Denny Wong Pui-chung", email = "denwong47@hotmail.com"},
 ]
-version = "0.1.0"
+version = "0.2.0"
 description = "Python Library with a Rust backend to calculate Geodistances using both Haversine and Vincenty methods."
 readme = "README.md"
 requires-python = ">=3.9"

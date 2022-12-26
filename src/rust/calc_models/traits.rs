@@ -251,7 +251,7 @@ pub trait OffsetByVector<T>:CalculateDistance {
     ///     `s`.
     ///     - `array.column(0)` being latitude in degrees,
     ///     - `array.column(1)` being longitude in degrees.
-    fn offset(
+    fn displace(
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,

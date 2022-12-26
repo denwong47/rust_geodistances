@@ -154,7 +154,30 @@ mod calc_models;
 //     );
 // }
 
-/// A Python module implemented in Rust.
+/// Internal module (lib.rs) in Rust exposes the Rust endpoints to Python.
+///
+/// This module is written in Rust and compiled by ``pyo3`` + ``maturin`` with Python
+/// bindings.
+///
+/// .. versionchanged:: 0.2.0
+///     This module now no longer contains any functions; instead of calling:
+///
+///         >>> from rust_geodistances import distance, CalculationMethod
+///         >>> distance(s, e, method=CalculationMethod.HAVERSINE)
+///
+///     Now you can simply call:
+///
+///         >>> from rust_geodistances import haversine
+///         >>> haversine.distance(s, e)
+///
+///     :attr:`~rust_geodistances.haversine` is simply an alias for
+///     :attr:`rust_geodistances.lib_rust_geodistances.CalculationMethod.HAVERSINE`.
+///
+/// Most if not all of the objects within this module are already exposed at the top
+/// level by :mod:`rust_geodistances`, so importing this module is typically not
+/// required.
+///
+/// This module is also accessible as :attr:`rust_geodistances.bin`.
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(distance_from_point, m)?)?;
@@ -230,8 +253,6 @@ mod test_distance {
         ArrayWithF64Methods,
         F64LatLngArray,
     };
-
-    use crate::calc_models::traits::OffsetByVector;
 
     use super::calc_models::traits::{
         CalculateDistance,
@@ -328,11 +349,11 @@ mod test_distance {
     }
 
     #[test]
-    fn test_haversine_offset() {
+    fn test_haversine_displace() {
 
         let s_latlng = arr2(&latlng_array);
 
-        let offset_values:[[f64; 2]; 32] = [
+        let displace_values:[[f64; 2]; 32] = [
             [39402.93921538783, 63.985495140461836],
             [36792.97174894066, -138.4328427193995],
             [70326.88760700842, -172.90429063935443],
@@ -366,7 +387,7 @@ mod test_distance {
             [40797.94829164596, -149.32358432297835],
             [3544.29792821624, -123.57446428341305]
         ];
-        let offset = arr2(&offset_values);
+        let displace = arr2(&displace_values);
 
         let e_latlng = arr2(
             &[
@@ -405,13 +426,13 @@ mod test_distance {
             ]
         );
 
-        // println!("Calc: {:?}", (Haversine::offset(&s_latlng, &offset.column(0), &offset.column(1)) * 1e10).floor());
+        // println!("Calc: {:?}", (Haversine::displace(&s_latlng, &displace.column(0), &displace.column(1)) * 1e10).floor());
         // println!("Ans:  {:?}", (&e_latlng * 1e10).floor());
         assert!(
-            (Haversine::offset(
+            (Haversine::displace(
                 &s_latlng,
-                &offset.column(0),
-                &offset.column(1),
+                &displace.column(0),
+                &displace.column(1),
                 None,
             ) * 1e10).floor()
             == (&e_latlng * 1e10).floor()

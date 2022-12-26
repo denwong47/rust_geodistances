@@ -406,7 +406,7 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
 /// Array implementation
 impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
     #[allow(non_snake_case)]
-    fn offset(
+    fn displace(
         s:&dyn LatLngArray,
         distance:__vector_type__,
         bearing:__vector_type__,
@@ -558,7 +558,7 @@ impl<__impl_generics__> OffsetByVector<__vector_type__> for Vincenty {
 /// This just call the Array implementation of the same thing.
 impl OffsetByVector<f64> for Vincenty {
     #[allow(non_snake_case)]
-    fn offset(
+    fn displace(
         s:&dyn LatLngArray,
         distance:f64,
         bearing:f64,
@@ -568,7 +568,7 @@ impl OffsetByVector<f64> for Vincenty {
         let distance_arr = F64Array::from_elem(shape, distance);
         let bearing_arr = F64Array::from_elem(shape, bearing);
 
-        return Self::offset(
+        return Self::displace(
             s,
             &distance_arr, &bearing_arr,
             settings

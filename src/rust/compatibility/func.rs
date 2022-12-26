@@ -123,10 +123,10 @@ pub fn indices_within_distance_of_point(
     .to_vec();
 }
 
-pub fn offset() {
+pub fn displace() {
 
 }
 
-pub fn offset_from_point() {
+pub fn displace_from_point() {
 
 }
