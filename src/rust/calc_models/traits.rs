@@ -201,6 +201,11 @@ pub trait CalculateDistance {
         e:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
+
+    fn distance_within_array(
+        s:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array2;
 }
 
 /// Generic T here, could be scalar f64 or F64Array.
@@ -246,7 +251,7 @@ pub trait OffsetByVector<T>:CalculateDistance {
     ///     `s`.
     ///     - `array.column(0)` being latitude in degrees,
     ///     - `array.column(1)` being longitude in degrees.
-    fn offset(
+    fn displace(
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
@@ -277,6 +282,12 @@ pub trait CheckDistance<T>:OffsetByVector<T> {
     fn within_distance(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
+        distance: T,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2;
+
+    fn within_distance_among_array(
+        s:&dyn LatLngArray,
         distance: T,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;

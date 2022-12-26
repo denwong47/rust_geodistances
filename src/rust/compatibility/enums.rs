@@ -85,7 +85,7 @@ pub trait CalculationInterfaceInternal<T> {
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
 
-    fn _offset(
+    fn _displace(
         &self,
         s:&dyn LatLngArray,
         distance:T,
@@ -106,6 +106,13 @@ pub trait CalculationInterfaceInternal<T> {
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance:f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2;
+
+    fn _within_distance_among_array(
+        &self,
+        s:&dyn LatLngArray,
+        distance: f64,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
@@ -179,14 +186,15 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     ) -> F64Array2 {
         // TODO This is not the intended implentation; this is meant to only calculate
         // the lower half of the grid below the diagonal.
-        return CalculationInterfaceInternal::<__vector_type__>::_distance(
-            self,
-            s, s,
-            settings,
-        )
+        let f = match self {
+            Self::HAVERSINE => Haversine::distance_within_array,
+            Self::VINCENTY => Vincenty::distance_within_array,
+        };
+
+        return f(s, settings);
     }
 
-    fn _offset(
+    fn _displace(
         &self,
         s:&dyn LatLngArray,
         distance:__vector_type__,
@@ -194,8 +202,8 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray {
         let f = match self {
-            Self::HAVERSINE => Haversine::offset,
-            Self::VINCENTY => Vincenty::offset,
+            Self::HAVERSINE => Haversine::displace,
+            Self::VINCENTY => Vincenty::displace,
         };
 
         return f(s, distance, bearing, settings);
@@ -229,6 +237,20 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         };
 
         return f(s, e, distance, settings);
+    }
+
+    fn _within_distance_among_array(
+        &self,
+        s:&dyn LatLngArray,
+        distance: f64,
+        settings: Option<&config::CalculationSettings>,
+    ) -> BoolArray2 {
+        let f  = match self {
+            Self::HAVERSINE => Haversine::within_distance_among_array,
+            Self::VINCENTY => Vincenty::within_distance_among_array,
+        };
+
+        return f(s, distance, settings);
     }
 
     /// Does this belong here, or in lib.rs?

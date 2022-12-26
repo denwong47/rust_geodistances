@@ -36,7 +36,7 @@ impl enums::CalculationMethod {
     ///     Of dimension ``(2)``, e.g. ``numpy.array([51.5072, -0.1276])``.
     ///
     /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// settings: CalculationSettings
     ///     Settings to be passed on to the calculation method.
@@ -46,6 +46,70 @@ impl enums::CalculationMethod {
     /// numpy.ndarray (dtype=numpy.float64)
     ///     An array of great-circle distances mapping each point in
     ///     `e` to `s`.
+    fn distance_from_point(
+        &self,
+        s: &PyArray<f64, Ix1>,
+        e: &PyArray<f64, Ix2>,
+
+        settings: Option< &config::CalculationSettings>,
+        py: Python<'_>,
+    ) -> PyResult<PyObject> {
+        let result = {
+            CalculationInterfaceInternal::<f64>::_distance_from_point(
+                self,
+                &s.to_owned_array(), &e.to_owned_array(),
+                settings,
+            )
+            .to_pyarray(py)
+        };
+
+        return Ok(result.into_py(py));
+    }
+
+    #[pyo3(text_signature = "($self, s, e, *, settings)")]
+    /// Great-circle distances between two arrays of lat-long coordinates.
+    ///
+    /// .. note::
+    ///     This function will check if ``s`` and ``e`` are identical (i.e. Python
+    ///     ``s is e``); if it is, it will not calculate the upper half of the result
+    ///     array above the diagonal, and simply mirror the bottom half over. This
+    ///     effectively halves the calculations.
+    ///
+    ///     For this reason, if you are to pair each coordinates of an array with
+    ///     every other within the same array, make sure an **identical** object is
+    ///     passed to both ``s`` and ``e``:
+    ///
+    ///         >>> # Assume s is some numpy.ndarray of shape (n, 2).
+    ///         >>>
+    ///         >>> from rust_geodistances import haversine
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> result = haversine.distance(s, s)
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> e = s
+    ///         >>> result = haversine.distance(s, e)
+    ///         >>>
+    ///         >>> # Slow
+    ///         >>> e = s.copy()
+    ///         >>> result = haversine.distance(s, e)
+    ///
+    /// Parameters
+    /// ----------
+    /// s: numpy.ndarray
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
+    ///
+    /// e: numpy.ndarray
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
+    ///
+    /// settings: CalculationSettings
+    ///     Settings to be passed on to the calculation method.
+    ///
+    /// Returns
+    /// -------
+    /// numpy.ndarray (dtype=numpy.float64)
+    ///     An array of great-circle distances mapping each point in
+    ///     `s` to each point in `e`.
     ///
     /// Example
     /// -------
@@ -79,45 +143,6 @@ impl enums::CalculationMethod {
     ///             14498.75424006, 15378.86092402,     0.        , 16542.79712392],
     ///            [ 6734.12355525, 17495.93671898,  5828.42501612, 13729.37952497,
     ///              3897.67499337,  1775.65767549, 16542.79712392,     0.        ]])
-    fn distance_from_point(
-        &self,
-        s: &PyArray<f64, Ix1>,
-        e: &PyArray<f64, Ix2>,
-
-        settings: Option< &config::CalculationSettings>,
-        py: Python<'_>,
-    ) -> PyResult<PyObject> {
-        let result = {
-            CalculationInterfaceInternal::<f64>::_distance_from_point(
-                self,
-                &s.to_owned_array(), &e.to_owned_array(),
-                settings,
-            )
-            .to_pyarray(py)
-        };
-
-        return Ok(result.into_py(py));
-    }
-
-    #[pyo3(text_signature = "($self, s, e, *, settings)")]
-    /// Great-circle distances between two arrays of lat-long coordinates.
-    ///
-    /// Parameters
-    /// ----------
-    /// s: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
-    ///
-    /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
-    ///
-    /// settings: CalculationSettings
-    ///     Settings to be passed on to the calculation method.
-    ///
-    /// Returns
-    /// -------
-    /// numpy.ndarray (dtype=numpy.float64)
-    ///     An array of great-circle distances mapping each point in
-    ///     `s` to each point in `e`.
     fn distance(
         &self,
         s: &PyArray<f64, Ix2>,
@@ -125,8 +150,6 @@ impl enums::CalculationMethod {
         settings: Option< &config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        // TODO Use identity check to check if we can save some calculation:
-        //  s.is(e);
 
         let result = if !s.is(e){
             let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
@@ -157,8 +180,66 @@ impl enums::CalculationMethod {
     }
 
     #[pyo3(text_signature = "($self, s, e, distance, bearing, *, settings)")]
-    /// Offset an array of coordinates by a vector.
-    fn offset(
+    /// Displace an array of coordinates by a vector.
+    ///
+    /// .. versionchanged:: 0.2.0
+    ///     Renamed function from :func:`offset` to :func:`displace`.
+    ///
+    /// Parameters
+    /// ----------
+    /// s: numpy.ndarray
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
+    ///
+    /// distance: numpy.float64
+    ///     Distance of the vector to displace.
+    ///     The unit of this must be the same as that of:
+    ///
+    ///     - :attr:`CalculationSettings.spherical_radius` or
+    ///     - :attr:`CalculationSettings.ellipse_a` and
+    ///     - :attr:`CalculationSettings.ellipse_b` and
+    ///     - :attr:`CalculationSettings.ellipse_f`
+    ///
+    ///     whichever used by in the :class:`CalculationMethod`.
+    ///
+    /// bearing: numpy.float64
+    ///     A bearing of 0º to 360º, with 0º being due North.
+    ///
+    ///     This is the direction of the displacement vector.
+    ///
+    /// settings: CalculationSettings
+    ///     Settings to be passed on to the calculation method.
+    ///
+    /// Returns
+    /// -------
+    /// numpy.ndarray (dtype=bool)
+    ///     Dimension `(n, 2)`.
+    ///     The resultant coordinates after displacement from ``s``.
+    ///
+    /// Example
+    /// -------
+    /// Mapping distances between two arrays::
+    ///
+    ///     >>> import numpy as np; import random
+    ///     >>> from rust_geodistances.lib_rust_geodistances import CalculationMethod, CalculationSettings
+    ///     >>> from rust_geodistances import haversine
+    ///
+    ///     >>> sn = en = np.array(
+    ///     ...     [
+    ///     ...         (random.random()*180-90, random.random()*360-180)
+    ///     ...         for _ in range(8)
+    ///     ...     ]
+    ///     ... )
+    ///
+    ///     >>> haversine.displace(sn, 1000, 45)
+    ///     array([[ -28.86546369,   13.59962309],
+    ///            [ -29.70188916,  -51.23964521],
+    ///            [  57.63527865,   -9.52852496],
+    ///            [ -62.37326971,   95.67907013],
+    ///            [ -78.87596194,  167.07776966],
+    ///            [ -51.27505405,   82.74368037],
+    ///            [ -38.39502506, -135.63886557],
+    ///            [ -73.12361752,  -84.45706686]])
+    fn displace(
         &self,
         s: &PyArray<f64, Ix2>,
         distance: f64,
@@ -167,7 +248,7 @@ impl enums::CalculationMethod {
         py: Python<'_>,
     ) -> PyResult<PyObject> {
         let result = {
-            CalculationInterfaceInternal::<f64>::_offset(
+            CalculationInterfaceInternal::<f64>::_displace(
                 self,
                 &s.to_owned_array(),
                 distance,
@@ -180,10 +261,10 @@ impl enums::CalculationMethod {
         return Ok(result.into_py(py));
     }
 
-    // TODO Check how arrays are implemented in offset again and see if this is possible at all
+    // TODO Check how arrays are implemented in displace again and see if this is possible at all
     // #[pyo3(text_signature = "($self, s, e, distance, bearing, *, settings)")]
-    // /// Offset an array of coordinates by a vectors of equal length.
-    // fn offset_group(
+    // /// Displace an array of coordinates by a vectors of equal length.
+    // fn displace_group(
     //     &self,
     //     s: &PyArray<f64, Ix2>,
     //     distance: &PyArray<f64, Ix1>,
@@ -192,7 +273,7 @@ impl enums::CalculationMethod {
     //     py: Python<'_>,
     // ) -> PyResult<PyObject> {
     //     let result = {
-    //         CalculationInterfaceInternal::<&F64Array1>::_offset(
+    //         CalculationInterfaceInternal::<&F64Array1>::_displace(
     //             self,
     //             &s.to_owned_array(),
     //             &F64Array2::from_duplicated_rows(distance.to_owned_array().view()),
@@ -214,7 +295,7 @@ impl enums::CalculationMethod {
     ///     Of dimension ``(2)``, e.g. ``numpy.array([51.5072, -0.1276])``.
     ///
     /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// distance: numpy.float64
     ///     Distance to check against.
@@ -260,13 +341,38 @@ impl enums::CalculationMethod {
     #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     /// Check if each point from ``s`` is within ``distance`` of that of ``e``.
     ///
+    /// .. note::
+    ///     This function will check if ``s`` and ``e`` are identical (i.e. Python
+    ///     ``s is e``); if it is, it will not calculate the upper half of the result
+    ///     array above the diagonal, and simply mirror the bottom half over. This
+    ///     effectively halves the calculations.
+    ///
+    ///     For this reason, if you are to pair each coordinates of an array with
+    ///     every other within the same array, make sure an **identical** object is
+    ///     passed to both ``s`` and ``e``:
+    ///
+    ///         >>> # Assume s is some numpy.ndarray of shape (n, 2).
+    ///         >>>
+    ///         >>> from rust_geodistances import haversine
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> result = haversine.within_distance(s, s)
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> e = s
+    ///         >>> result = haversine.within_distance(s, e)
+    ///         >>>
+    ///         >>> # Slow
+    ///         >>> e = s.copy()
+    ///         >>> result = haversine.within_distance(s, e)
+    ///
     /// Parameters
     /// ----------
     /// s: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// distance: numpy.float64
     ///     Distance to check against.
@@ -287,6 +393,31 @@ impl enums::CalculationMethod {
     /// numpy.ndarray (dtype=bool)
     ///     An array of great-circle distances mapping each point in
     ///     `s` to each point in `e`.
+    ///
+    /// Example
+    /// -------
+    /// Mapping distances between two arrays::
+    ///
+    ///     >>> import numpy as np; import random
+    ///     >>> from rust_geodistances.lib_rust_geodistances import CalculationMethod, CalculationSettings
+    ///     >>> from rust_geodistances import haversine
+    ///
+    ///     >>> sn = en = np.array(
+    ///     ...     [
+    ///     ...         (random.random()*180-90, random.random()*360-180)
+    ///     ...         for _ in range(8)
+    ///     ...     ]
+    ///     ... )
+    ///
+    ///     >>> haversine.within_distance(sn, en, 8000)
+    ///     array([[ True,  True, False,  True,  True,  True, False,  True],
+    ///            [ True,  True, False,  True,  True, False,  True,  True],
+    ///            [False, False,  True, False, False, False, False, False],
+    ///            [ True,  True, False,  True,  True,  True,  True,  True],
+    ///            [ True,  True, False,  True,  True,  True,  True,  True],
+    ///            [ True, False, False,  True,  True,  True, False,  True],
+    ///            [False,  True, False,  True,  True, False,  True,  True],
+    ///            [ True,  True, False,  True,  True,  True,  True,  True]])
     fn within_distance(
         &self,
         s: &PyArray<f64, Ix2>,
@@ -295,16 +426,31 @@ impl enums::CalculationMethod {
         settings: Option< &config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
 
-        let result = {
-            CalculationInterfaceInternal::<f64>::_within_distance(
-                self,
-                s_native, e_native,
-                distance,
-                settings,
-            )
-            .to_pyarray(py)
+        let result = if !s.is(e){
+            let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
+
+            {
+                CalculationInterfaceInternal::<f64>::_within_distance(
+                    self,
+                    s_native, e_native,
+                    distance,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
+        } else {
+            let s_native = &s.to_owned_array();
+
+            {
+                CalculationInterfaceInternal::<f64>::_within_distance_among_array(
+                    self,
+                    s_native,
+                    distance,
+                    settings,
+                )
+                .to_pyarray(py)
+            }
         };
 
         return Ok(result.into_py(py));
@@ -319,7 +465,7 @@ impl enums::CalculationMethod {
     ///     Of dimension ``(2)``, e.g. ``numpy.array([51.5072, -0.1276])``.
     ///
     /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// distance: numpy.float64
     ///     Distance to check against.
@@ -365,13 +511,38 @@ impl enums::CalculationMethod {
     #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     /// Indices of all points from ``s`` is within ``distance`` of that of ``e``.
     ///
+    /// .. note::
+    ///     This function will check if ``s`` and ``e`` are identical (i.e. Python
+    ///     ``s is e``); if it is, it will not calculate the upper half of the result
+    ///     array above the diagonal, and simply mirror the bottom half over. This
+    ///     effectively halves the calculations.
+    ///
+    ///     For this reason, if you are to pair each coordinates of an array with
+    ///     every other within the same array, make sure an **identical** object is
+    ///     passed to both ``s`` and ``e``:
+    ///
+    ///         >>> # Assume s is some numpy.ndarray of shape (n, 2).
+    ///         >>>
+    ///         >>> from rust_geodistances import haversine
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> result = haversine.indices_within_distance(s, s)
+    ///         >>>
+    ///         >>> # Fast
+    ///         >>> e = s
+    ///         >>> result = haversine.indices_within_distance(s, e)
+    ///         >>>
+    ///         >>> # Slow
+    ///         >>> e = s.copy()
+    ///         >>> result = haversine.indices_within_distance(s, e)
+    ///
     /// Parameters
     /// ----------
     /// s: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// e: numpy.ndarray
-    ///     Of dimension ``(n, 2)``.
+    ///     Of dimension ``(n, 2)``, in degrees. In order ``(latitude, longitude)``.
     ///
     /// distance: numpy.float64
     ///     Distance to check against.
@@ -393,6 +564,31 @@ impl enums::CalculationMethod {
     ///     Each ``returned[i]`` contains a ``numpy.ndarray`` of ``dtype``
     ///     ``numpy.uint64`` that are the indices of all points in ``e`` within
     ///     ``distance`` of ``s[i]``.
+    ///
+    /// Example
+    /// -------
+    /// Mapping distances between two arrays::
+    ///
+    ///     >>> import numpy as np; import random
+    ///     >>> from rust_geodistances.lib_rust_geodistances import CalculationMethod, CalculationSettings
+    ///     >>> from rust_geodistances import haversine
+    ///
+    ///     >>> sn = en = np.array(
+    ///     ...     [
+    ///     ...         (random.random()*180-90, random.random()*360-180)
+    ///     ...         for _ in range(8)
+    ///     ...     ]
+    ///     ... )
+    ///
+    ///     >>> haversine.indices_within_distance(sn, en, 8000)
+    ///     (array([0, 1, 3, 4, 5, 7], dtype=uint64),
+    ///      array([0, 1, 3, 4, 6, 7], dtype=uint64),
+    ///      array([2], dtype=uint64),
+    ///      array([0, 1, 3, 4, 5, 6, 7], dtype=uint64),
+    ///      array([0, 1, 3, 4, 5, 6, 7], dtype=uint64),
+    ///      array([0, 3, 4, 5, 7], dtype=uint64),
+    ///      array([1, 3, 4, 6, 7], dtype=uint64),
+    ///      array([0, 1, 3, 4, 5, 6, 7], dtype=uint64))
     fn indices_within_distance(
         &self,
         s: &PyArray<f64, Ix2>,
@@ -401,14 +597,32 @@ impl enums::CalculationMethod {
         settings: Option<&config::CalculationSettings>,
         py: Python<'_>,
     ) -> PyResult<PyObject> {
-        let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
 
-        let result = {
+        let result = if !s.is(e){
+            let (s_native, e_native) = (&s.to_owned_array(), &e.to_owned_array());
+
             PyTuple::new(
                 py,
                 CalculationInterfaceInternal::<f64>::_within_distance(
                     self,
                     s_native, e_native,
+                    distance,
+                    settings,
+                )
+                .rows()
+                .into_iter()
+                .map(
+                    |row| row.indices().to_pyarray(py)
+                )
+            )
+        } else {
+            let s_native = &s.to_owned_array();
+
+            PyTuple::new(
+                py,
+                CalculationInterfaceInternal::<f64>::_within_distance_among_array(
+                    self,
+                    s_native,
                     distance,
                     settings,
                 )
