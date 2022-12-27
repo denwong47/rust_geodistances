@@ -116,8 +116,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -203,8 +203,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -255,11 +255,8 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">rust_geodistances.decorators package</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">rust_geodistances.decorators package</a></li>
 </ul>
 
   </div>
@@ -300,9 +297,15 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">#</a></h2>
 </section>
-<section id="module-rust_geodistances.decorators.timed">
-<span id="rust-geodistances-decorators-timed-module"></span><h2>rust_geodistances.decorators.timed module<a class="headerlink" href="#module-rust_geodistances.decorators.timed" title="Permalink to this heading">#</a></h2>
-<p>Timed decorators for functions.</p>
+<section id="rust-geodistances-decorators-timed-module">
+<h2>rust_geodistances.decorators.timed module<a class="headerlink" href="#rust-geodistances-decorators-timed-module" title="Permalink to this heading">#</a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.2.0: </span>This module is not currently being used, i.e. the methods of
+<a class="reference internal" href="rust_geodistances.html#rust_geodistances.haversine" title="rust_geodistances.haversine"><code class="xref py py-attr docutils literal notranslate"><span class="pre">haversine</span></code></a> and <a class="reference internal" href="rust_geodistances.html#rust_geodistances.vincenty" title="rust_geodistances.vincenty"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vincenty</span></code></a>
+are <em>NOT</em> wrapped by <a class="reference internal" href="#rust_geodistances.decorators.timed.TimedFunction" title="rust_geodistances.decorators.timed.TimedFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimedFunction</span></code></a>.</p>
+<p>This might be re-implemented at a later date.</p>
+</div>
+<span class="target" id="module-rust_geodistances.decorators.timed"></span><p>Timed decorators for functions.</p>
 <p>Works with any Python callables, but this is primarily built for Rust imported
 functions.</p>
 <dl class="py class">
@@ -455,7 +458,7 @@ the duration of execution as well as its results.</p>
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-rust_geodistances.decorators.timed">
+  <a class="reference internal nav-link" href="#rust-geodistances-decorators-timed-module">
    rust_geodistances.decorators.timed module
   </a>
   <ul class="nav section-nav flex-column">

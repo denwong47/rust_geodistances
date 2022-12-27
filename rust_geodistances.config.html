@@ -117,8 +117,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -204,8 +204,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -256,11 +256,8 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">rust_geodistances.config package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.decorators.html">rust_geodistances.decorators package</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">rust_geodistances.config package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.decorators.html">rust_geodistances.decorators package</a></li>
 </ul>
 
   </div>
@@ -319,10 +316,16 @@
 <li><p><strong>key</strong> (<em>str</em>) – The environment variable name to get.</p></li>
 <li><p><strong>modifier</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Any</em><em>]</em>) – <p>A Callable to transform the found value. Useful for type coersion, since
 environment variables are always stored as <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>.</p>
-<p>A special case here is that if <cite>bool</cite> is passed, the actual modifier used will
-look for the word <cite>true</cite> or <cite>false</cite> before using <code class="docutils literal notranslate"><span class="pre">bool(int(value))</span></code>. This is
-because <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> itself does not reflect how intuitively <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
-translates to <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">modifier</span></code> is <code class="docutils literal notranslate"><span class="pre">bool</span></code>, special cases apply:</p>
+<ul>
+<li><p>Any case-insensitive string value <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code> is considered <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p>Any case-insensitive string value <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> is considered <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p>String values containing only <code class="docutils literal notranslate"><span class="pre">0-9</span></code> numerics, then the number is
+converted to <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> before applying <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>.</p></li>
+</ul>
+</div>
 </p></li>
 <li><p><strong>default</strong> (<em>Any</em>) – The default value if not found, or modifier encountered an <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code>.</p></li>
 </ul>
@@ -334,6 +337,20 @@ translates to <code class="xref py py-class docutils literal notranslate"><span 
 <dd class="field-odd"><p>Any</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="rust_geodistances.config.env.PYTEST_IS_RUNNING">
+<span class="sig-prename descclassname"><span class="pre">rust_geodistances.config.env.</span></span><span class="sig-name descname"><span class="pre">PYTEST_IS_RUNNING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#rust_geodistances.config.env.PYTEST_IS_RUNNING" title="Permalink to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if pytest is running, otherwise <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Set Environment Variable <code class="docutils literal notranslate"><span class="pre">PYTEST_RUNNING</span></code> to change this value manually.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="rust_geodistances.config.env.SPHINX_IS_BUILDING">
+<span class="sig-prename descclassname"><span class="pre">rust_geodistances.config.env.</span></span><span class="sig-name descname"><span class="pre">SPHINX_IS_BUILDING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#rust_geodistances.config.env.SPHINX_IS_BUILDING" title="Permalink to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> value if sphinx is building, otherwise <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Set Environment Variable <code class="docutils literal notranslate"><span class="pre">SPHINX_BUILD</span></code> to change this value manually.</p>
 </dd></dl>
 
 </section>
@@ -402,6 +419,24 @@ translates to <code class="xref py py-class docutils literal notranslate"><span 
      <code class="docutils literal notranslate">
       <span class="pre">
        get()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rust_geodistances.config.env.PYTEST_IS_RUNNING">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       PYTEST_IS_RUNNING
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rust_geodistances.config.env.SPHINX_IS_BUILDING">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       SPHINX_IS_BUILDING
       </span>
      </code>
     </a>

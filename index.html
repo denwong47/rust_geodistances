@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Welcome to Geodistance Calculations’s documentation! &#8212; Geodistance Calculations  documentation</title>
+    <title>rust_geodistances library &#8212; Geodistance Calculations  documentation</title>
   
   
   
@@ -42,7 +42,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="rust_geodistances" href="modules.html" />
+    <link rel="next" title="rust_geodistances package" href="rust_geodistances.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -116,8 +116,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -203,8 +203,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="modules.html">
-                        rust_geodistances
+                      <a class="nav-link nav-internal" href="rust_geodistances.html">
+                        rust_geodistances package
                       </a>
                     </li>
                 
@@ -272,13 +272,98 @@
             
             <article class="bd-article" role="main">
               
-  <section id="welcome-to-geodistance-calculations-s-documentation">
-<h1>Welcome to Geodistance Calculations’s documentation!<a class="headerlink" href="#welcome-to-geodistance-calculations-s-documentation" title="Permalink to this heading">#</a></h1>
+  <section id="rust-geodistances-library">
+<h1><cite>rust_geodistances</cite> library<a class="headerlink" href="#rust-geodistances-library" title="Permalink to this heading">#</a></h1>
+<p>Faster great-circle pair-wise calculations for Latitude-Longitude numpy arrays.</p>
+<p>Typically, great-circle distances in python are done via <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code>
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.haversine_distances.html#sklearn.metrics.pairwise.haversine_distances">haversine_distances</a>
+which is written in <a class="reference external" href="https://github.com/scikit-learn/scikit-learn/blob/ecb9a70e82d4ee352e2958c555536a395b53d2bd/sklearn/metrics/_dist_metrics.pyx.tp#L2620">Cython</a>.</p>
+<p>This function while being very efficient</p>
+<ul class="simple">
+<li><p>assumes the globe as a perfect sphere,</p></li>
+<li><p>has parameters and returns in radians, and</p></li>
+<li><p>does not utilise parallelism.</p></li>
+</ul>
+<p>In practice, most great-circle distances are made on the surface of the earth with
+Latitude-Longitudes arrays that contains hundreds of thousands of points, just to
+establish adjacency among them.</p>
+<p>This library allows quicker parallelised Haversine and Vincenty calculations using
+a Rust backend.</p>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rust_geodistances</span> <span class="kn">import</span> <span class="n">haversine</span><span class="p">,</span> <span class="n">vincenty</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">8000</span><span class="p">,</span> <span class="mi">2</span><span class="p">));</span> <span class="n">sn</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">sn</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">180</span><span class="o">-</span><span class="mi">90</span><span class="p">;</span> <span class="n">sn</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sn</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">360</span><span class="o">-</span><span class="mi">180</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sn</span>
+<span class="go">array([[  53.1941384 ,  140.67426345],</span>
+<span class="go">      [   4.60083066,   62.12562388],</span>
+<span class="go">      [  88.99525052,   98.45081558],</span>
+<span class="go">      ...,</span>
+<span class="go">      [ -22.91316671,  102.70576891],</span>
+<span class="go">      [  48.92518649,   45.16867756],</span>
+<span class="go">      [ -26.0821552 , -146.45968174]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">haversine</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">sn</span><span class="p">,</span> <span class="n">sn</span><span class="p">)</span>
+<span class="go">array([[    0.        ,  8836.43498769,  4010.49447966, ...,</span>
+<span class="go">         9219.94214377,  6175.84784262, 11248.13008269],</span>
+<span class="go">      [ 8836.43498769,     0.        ,  9405.97201428, ...,</span>
+<span class="go">         5363.41625518,  5183.1320447 , 16148.40028959],</span>
+<span class="go">      [ 4010.49447966,  9405.97201428,     0.        , ...,</span>
+<span class="go">      12443.95394676,  4501.24761429, 12954.72431644],</span>
+<span class="go">      ...,</span>
+<span class="go">      [ 9219.94214377,  5363.41625518, 12443.95394676, ...,</span>
+<span class="go">            0.        ,  9807.83119801, 10793.61322006],</span>
+<span class="go">      [ 6175.84784262,  5183.1320447 ,  4501.24761429, ...,</span>
+<span class="go">         9807.83119801,     0.        , 17283.1158441 ],</span>
+<span class="go">      [11248.13008269, 16148.40028959, 12954.72431644, ...,</span>
+<span class="go">      10793.61322006, 17283.1158441 ,     0.        ]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vincenty</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">sn</span><span class="p">,</span> <span class="n">sn</span><span class="p">)</span>
+<span class="go">array([[    0.        ,  8837.11025873,  4023.24193027, ...,</span>
+<span class="go">         9193.32732786,  6195.10039743, 11229.3496438 ],</span>
+<span class="go">      [ 8837.11025873,     0.        ,  9402.83686779, ...,</span>
+<span class="go">         5359.01964487,  5168.7529272 , 16159.90036067],</span>
+<span class="go">      [ 4023.24193027,  9402.83686779,     0.        , ...,</span>
+<span class="go">      12424.96985134,  4514.2999062 , 12935.09607141],</span>
+<span class="go">      ...,</span>
+<span class="go">      [ 9193.32732786,  5359.01964487, 12424.96985134, ...,</span>
+<span class="go">            0.        ,  9787.14116681, 10811.013432  ],</span>
+<span class="go">      [ 6195.10039743,  5168.7529272 ,  4514.2999062 , ...,</span>
+<span class="go">         9787.14116681,     0.        , 17278.15903244],</span>
+<span class="go">      [11229.3496438 , 16159.90036067, 12935.09607141, ...,</span>
+<span class="go">      10811.013432  , 17278.15903244,     0.        ]])</span>
+</pre></div>
+</div>
+<p>These functions accepts and returns <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>. In the example
+above, we created an array of 8000 Latitude-Longitude pairs, and mapped all
+the distances among them. The return values are in kilometres (this can be
+changed by setting different radius in
+<a class="reference internal" href="rust_geodistances.html#rust_geodistances.CalculationSettings" title="rust_geodistances.CalculationSettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">CalculationSettings</span></code></a>). In our case, where the two
+inputs are identical objects, the backend will only perform calculations for
+<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">to</span> <span class="pre">y</span></code> but not <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">to</span> <span class="pre">x</span></code>, and instead mirror the result array along the
+diagonal to save calculations.</p>
+<p>This enables haversine calculations of this library to be faster than
+<code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> in equivalent calculations (example in iPython on Apple M1 Pro):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">timeit</span> <span class="n">haversine</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">sn</span><span class="p">,</span> <span class="n">sn</span><span class="p">)</span>
+<span class="go">450 ms ± 11.6 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">timeit</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">pairwise</span><span class="o">.</span><span class="n">haversine_distances</span><span class="p">(</span><span class="n">sn</span><span class="o">/</span><span class="mi">180</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">sn</span><span class="o">/</span><span class="mi">180</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">*</span><span class="mi">6371</span>
+<span class="go">5.54 s ± 16.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)</span>
+</pre></div>
+</div>
+<p>These calculations scale well with number of physical threads. The higher the core
+count, the bigger the difference.</p>
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">rust_geodistances</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust-geodistances">rust_geodistances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.CalculationMethod"><code class="docutils literal notranslate"><span class="pre">CalculationMethod</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.CalculationSettings"><code class="docutils literal notranslate"><span class="pre">CalculationSettings</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.bin"><code class="docutils literal notranslate"><span class="pre">bin</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.haversine"><code class="docutils literal notranslate"><span class="pre">haversine</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.vincenty"><code class="docutils literal notranslate"><span class="pre">vincenty</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#module-rust_geodistances.lib_rust_geodistances">rust_geodistances.lib_rust_geodistances module</a></li>
 </ul>
 </li>
 </ul>
@@ -301,10 +386,10 @@
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='right-next' id="next-link" href="modules.html" title="next page">
+  <a class='right-next' id="next-link" href="rust_geodistances.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">rust_geodistances</p>
+      <p class="prev-next-title">rust_geodistances package</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -326,7 +411,10 @@
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h1 nav-item toc-entry">
   <a class="reference internal nav-link" href="#">
-   Welcome to Geodistance Calculations’s documentation!
+   <cite>
+    rust_geodistances
+   </cite>
+   library
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
