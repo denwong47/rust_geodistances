@@ -42,9 +42,9 @@ jobs:
         python -m pytest
 
     # Shinx block
-    - name: Install Cargo Sphinx
-      run: |
-        cargo install cargo-sphinx
+    # - name: Install Cargo Sphinx
+    #   run: |
+    #     cargo install cargo-sphinx
     - name: Build HTML
       # uses: ammaraskar/sphinx-action@master
       run: |
