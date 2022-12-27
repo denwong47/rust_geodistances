@@ -77,7 +77,13 @@ inputs are identical objects, the backend will only perform calculations for
 diagonal to save calculations.
 
 This enables haversine calculations of this library to be faster than
-``scikit-learn`` in general (example in iPython):
+``scikit-learn`` in equivalent calculations (example in iPython on Apple M1 Pro):
+
+   >>> %timeit haversine.distance(sn, sn)
+   450 ms ± 11.6 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+   >>> %timeit sklearn.metrics.pairwise.haversine_distances(sn/180*np.pi, sn/180*np.pi)*6371
+   5.54 s ± 16.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 .. toctree::
    :maxdepth: 2
