@@ -8,6 +8,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../src/py"))
 
+from types import FunctionType, MethodType, ModuleType
+from typing import Any, Dict, Literal, Type, Union
+
+import sphinx.application
+
+import rust_geodistances  # for autodoc
 from rust_geodistances import config
 
 config.env.SPHINX_IS_BUILDING = 1
@@ -78,3 +84,44 @@ html_theme_options = {
         #   },
     ],
 }
+
+# -- Options for autodoc -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+
+SKIP_MEMBERS = (rust_geodistances.lib_rust_geodistances,)
+
+# def should_skip_member(
+#     app: sphinx.application.Sphinx,
+#     what: Literal["module", "class", "exception", "function", "method", "attribute"],
+#     name: str,
+#     obj: Union[
+#         ModuleType,
+#         Type,
+#         BaseException,
+#         FunctionType,
+#         MethodType,
+#         Any, # Attribute; we can't avoid using Any here.
+#     ],
+#     skip: bool,
+#     options: Dict[
+#         Literal["inherited_members", "undoc_members", "show_inheritance", "noindex"],
+#         Any
+#     ],
+# ):
+#     """
+#     Implements a skip member check.
+
+#     Refer to
+#     `Sphinx Reference<https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#event-autodoc-skip-member>`_
+#     to implementation details.
+#     """
+#     if obj in SKIP_MEMBERS:
+#         print(f"\033[1mmanually skipping member: \033[22m{repr(obj)}")
+#     return obj in SKIP_MEMBERS
+
+
+# def setup(app):
+#     """
+#     This function will be called by autodoc if exists.
+#     """
+#     app.connect('autodoc-skip-member', should_skip_member)

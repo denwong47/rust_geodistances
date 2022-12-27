@@ -25,7 +25,7 @@ docs_rebuild_only:
 	cd docs; make rebuild
 
 docs_build:
-	cd docs; make html; make text
+	cd docs; make html -e; make text -e
 
 docs_rebuild: docs_rebuild_only docs_build
 
