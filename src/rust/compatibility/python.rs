@@ -289,6 +289,10 @@ impl enums::CalculationMethod {
     #[pyo3(text_signature = "($self, s, e, distance, *, settings)")]
     /// Check if array of lat-long coordinates is within great-circle distance of point.
     ///
+    /// .. versionchanged:: 0.2.1
+    ///     This function was renamed from :func:`within_distance_from_point` to
+    ///     :func:`within_distance_of_point`.
+    ///
     /// Parameters
     /// ----------
     /// s: numpy.ndarray
@@ -317,7 +321,7 @@ impl enums::CalculationMethod {
     ///     Dimension `(n)`.
     ///     An array of great-circle distances mapping each point in
     ///     `e` to `s`.
-    fn within_distance_from_point(
+    fn within_distance_of_point(
         &self,
         s: &PyArray<f64, Ix1>,
         e: &PyArray<f64, Ix2>,

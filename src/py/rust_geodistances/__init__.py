@@ -24,18 +24,14 @@ haversine = bin.CalculationMethod.HAVERSINE
 """
 Enum instance containing Haversine calculations methods.
 
-Use:
-
-- :func:`haversine.distance`
-- :func:`haversine.distance_from_point`
+.. seealso::
+  See :class:`CalculationMethod` for all inherited methods.
 """
 
 vincenty = bin.CalculationMethod.VINCENTY
 """
 Enum instance containing Vincenty calculations methods.
 
-Use:
-
-- :func:`vincenty.distance`
-- :func:`vincenty.distance_from_point`
+.. seealso::
+  See :class:`CalculationMethod` for all inherited methods.
 """

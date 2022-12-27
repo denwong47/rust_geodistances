@@ -1,5 +1,9 @@
 # `rust_geodistances` Library
 
+> ## **Documentation**:
+>
+> **Available at [github pages](https://denwong47.github.io/rust_geodistances/).**
+
 Faster great-circle pair-wise calculations for Latitude-Longitude numpy arrays.
 
 Typically, great-circle distances in python are done via ``scikit-learn`` [haversine_distances](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.haversine_distances.html#sklearn.metrics.pairwise.haversine_distances) which is written in [Cython](https://github.com/scikit-learn/scikit-learn/blob/ecb9a70e82d4ee352e2958c555536a395b53d2bd/sklearn/metrics/_dist_metrics.pyx.tp#L2620).

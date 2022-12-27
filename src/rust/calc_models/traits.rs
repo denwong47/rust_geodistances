@@ -35,8 +35,8 @@ use ndarray_numeric::{
 use super::config;
 
 // Marker Trait definitions for the common parameter types
-pub trait LatLng : ArrayWithF64AngularMethods<Ix1> + Index<Ix, Output = f64> {}
-pub trait LatLngArray : ArrayWithF64LatLngMethods + Index<Dim<[Ix; 2]>, Output = f64> {}
+pub trait LatLng : ArrayWithF64AngularMethods<Ix1> + Index<Ix, Output = f64> + Sync {}
+pub trait LatLngArray : ArrayWithF64LatLngMethods + Index<Dim<[Ix; 2]>, Output = f64> + Sync {}
 
 #[duplicate_item(
     __latlng_type__;

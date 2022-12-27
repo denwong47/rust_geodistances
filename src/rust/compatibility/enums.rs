@@ -1,13 +1,20 @@
 use duplicate::duplicate_item;
 
-use ndarray::{
-    Ix1,
-};
+use std::cmp;
+use std::sync::{Arc, Mutex};
 
+use ndarray::{
+    Axis,
+    Ix1,
+    s,
+    Slice,
+};
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 use ndarray_numeric::{
     ArrayWithBoolIterMethods,
+    ArrayWithF64PartialOrd,
 
     BoolArray1,
     BoolArray2,
@@ -66,6 +73,22 @@ pub trait CalculationInterfaceInternal<T> {
 
     // No Generics on this one.
     fn _distance_from_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array1;
+
+    // Serial Execution
+    fn _ser_distance_from_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array1;
+
+    // Parallel Execution
+    fn _par_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -150,8 +173,29 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2;
 
-    // No Generics on this one.
     fn _distance_from_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array1 {
+        // Split case if `e` array is short, then don't parallellise.
+        let f = {
+            if e.shape()[0] >= 8192 {
+                CalculationInterfaceInternal::<__vector_type__>::_par_distance_from_point
+            } else {
+                CalculationInterfaceInternal::<__vector_type__>::_ser_distance_from_point
+            }
+        };
+
+        return f(
+            self,
+            s, e,
+            settings,
+        )
+    }
+
+    fn _ser_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -165,6 +209,53 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         return f(s, e, settings);
     }
 
+    fn _par_distance_from_point(
+        &self,
+        s:&dyn LatLng,
+        e:&dyn LatLngArray,
+        settings: Option<&config::CalculationSettings>,
+    ) -> F64Array1 {
+        let shape = e.shape()[0];
+        let workers: usize = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).workers;
+        let chunk_size: usize = (shape as f32 / workers as f32).ceil() as usize;
+
+        let mut d = F64Array1::zeros(shape);
+        let d_ref = Arc::new(Mutex::new(d));
+
+        (0..shape)
+        .into_par_iter()
+        .step_by(chunk_size)
+        .map(
+            | start | (start, cmp::min(start+chunk_size, shape))
+        )
+        .for_each(
+            | (start, end) | {
+                let src_slice = CalculationInterfaceInternal::<__vector_type__>::_ser_distance_from_point(
+                    self,
+                    s, &e.slice_axis(Axis(0), Slice::from(start..end)).to_owned(),
+                    settings
+                );
+
+                '_mutex_block: {
+                    let dest_ref_t = Arc::clone(&d_ref);
+                    let mut d = dest_ref_t.lock().unwrap();
+
+                    let mut to_slice = d.slice_mut(s![start..end]);
+                    to_slice.assign(&src_slice.view());
+                };
+            }
+        );
+
+        d = Arc::try_unwrap(d_ref)
+                .unwrap()
+                .into_inner()
+                .unwrap();
+
+        return d;
+    }
+
     fn _distance(
         &self,
         s:&dyn LatLngArray,
@@ -176,7 +267,14 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
             Self::VINCENTY => Vincenty::distance,
         };
 
-        return f(s, e, settings);
+        if s.shape()[0] > e.shape()[0] {
+            return f(s, e, settings);
+        } else {
+            let mut result = f(e, s, settings);
+            result.swap_axes(0, 1);
+
+            return result;
+        }
     }
 
     fn _distance_within_array(
@@ -216,12 +314,21 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         distance: __vector_type__,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray1 {
-        let f = match self {
-            Self::HAVERSINE => Haversine::within_distance_of_point,
-            Self::VINCENTY => Vincenty::within_distance_of_point,
-        };
+        let distances = CalculationInterfaceInternal
+                                        ::<__vector_type__>
+                                        ::_distance_from_point(
+                                            self,
+                                            s, e,
+                                            settings,
+                                        );
 
-        return f(s, e, distance, settings);
+        return (distances - distance).le(&0.);
+        // let f = match self {
+        //     Self::HAVERSINE => Haversine::within_distance_of_point,
+        //     Self::VINCENTY => Vincenty::within_distance_of_point,
+        // };
+
+        // return f(s, e, distance, settings);
     }
 
     fn _within_distance(
@@ -231,12 +338,21 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         distance: f64, // Restrict to f64 here
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
-        let f: Self::FnWithinDistance  = match self {
-            Self::HAVERSINE => Haversine::within_distance,
-            Self::VINCENTY => Vincenty::within_distance,
-        };
+        let distances = CalculationInterfaceInternal
+                                        ::<__vector_type__>
+                                        ::_distance(
+                                            self,
+                                            s, e,
+                                            settings,
+                                        );
 
-        return f(s, e, distance, settings);
+        return (distances - distance).le(&0.);
+        // let f: Self::FnWithinDistance  = match self {
+        //     Self::HAVERSINE => Haversine::within_distance,
+        //     Self::VINCENTY => Vincenty::within_distance,
+        // };
+
+        // return f(s, e, distance, settings);
     }
 
     fn _within_distance_among_array(

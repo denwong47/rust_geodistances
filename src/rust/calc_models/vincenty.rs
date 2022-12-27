@@ -356,6 +356,8 @@ impl CalculateDistance for Vincenty {
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
 impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
+    /// .. versionchanged: 0.2.1
+    ///     Not in use anymore; this is now done at enum level.
     fn within_distance_of_point(
         s:&dyn LatLng,
         e:&dyn LatLngArray,
@@ -365,6 +367,8 @@ impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
         return (Self::distance_from_point(s, e, settings,) - distance).le(&0.);
     }
 
+    /// .. versionchanged: 0.2.1
+    ///     Not in use anymore; this is now done at enum level.
     fn within_distance(
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
