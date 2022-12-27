@@ -29,6 +29,10 @@ dev = [
     "sphinx",
     "scikit-learn",
 ]
+experiments = [
+    "cartopy",
+    "matplotlib",
+]
 
 [project.urls]
 repository = "https://github.com/denwong47/rust_geodistances"
