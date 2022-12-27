@@ -27,6 +27,7 @@ dev = [
     "pydata-sphinx-theme",
     "pytest",
     "sphinx",
+    "scikit-learn",
 ]
 
 [project.urls]
