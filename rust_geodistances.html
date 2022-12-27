@@ -676,9 +676,13 @@ The unit of this must be the same as that of:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="rust_geodistances.CalculationMethod.within_distance_from_point">
-<span class="sig-name descname"><span class="pre">within_distance_from_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rust_geodistances.CalculationMethod.within_distance_from_point" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="rust_geodistances.CalculationMethod.within_distance_of_point">
+<span class="sig-name descname"><span class="pre">within_distance_of_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rust_geodistances.CalculationMethod.within_distance_of_point" title="Permalink to this definition">#</a></dt>
 <dd><p>Check if array of lat-long coordinates is within great-circle distance of point.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.2.1: </span>This function was renamed from <code class="xref py py-func docutils literal notranslate"><span class="pre">within_distance_from_point()</span></code> to
+<a class="reference internal" href="#rust_geodistances.CalculationMethod.within_distance_of_point" title="rust_geodistances.CalculationMethod.within_distance_of_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">within_distance_of_point()</span></code></a>.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -844,22 +848,20 @@ distance. This does NOT mean that resultant values will be accurate to
 <dt class="sig sig-object py" id="rust_geodistances.haversine">
 <span class="sig-prename descclassname"><span class="pre">rust_geodistances.</span></span><span class="sig-name descname"><span class="pre">haversine</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">CalculationMethod.HAVERSINE</span></em><a class="headerlink" href="#rust_geodistances.haversine" title="Permalink to this definition">#</a></dt>
 <dd><p>Enum instance containing Haversine calculations methods.</p>
-<p>Use:</p>
-<ul class="simple">
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">haversine.distance()</span></code></p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">haversine.distance_from_point()</span></code></p></li>
-</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>See <a class="reference internal" href="#rust_geodistances.CalculationMethod" title="rust_geodistances.CalculationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">CalculationMethod</span></code></a> for all inherited methods.</p>
+</div>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="rust_geodistances.vincenty">
 <span class="sig-prename descclassname"><span class="pre">rust_geodistances.</span></span><span class="sig-name descname"><span class="pre">vincenty</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">CalculationMethod.VINCENTY</span></em><a class="headerlink" href="#rust_geodistances.vincenty" title="Permalink to this definition">#</a></dt>
 <dd><p>Enum instance containing Vincenty calculations methods.</p>
-<p>Use:</p>
-<ul class="simple">
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">vincenty.distance()</span></code></p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">vincenty.distance_from_point()</span></code></p></li>
-</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>See <a class="reference internal" href="#rust_geodistances.CalculationMethod" title="rust_geodistances.CalculationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">CalculationMethod</span></code></a> for all inherited methods.</p>
+</div>
 </dd></dl>
 
 <section id="subpackages">
@@ -1060,10 +1062,10 @@ required.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#rust_geodistances.CalculationMethod.within_distance_from_point">
+    <a class="reference internal nav-link" href="#rust_geodistances.CalculationMethod.within_distance_of_point">
      <code class="docutils literal notranslate">
       <span class="pre">
-       CalculationMethod.within_distance_from_point()
+       CalculationMethod.within_distance_of_point()
       </span>
      </code>
     </a>
