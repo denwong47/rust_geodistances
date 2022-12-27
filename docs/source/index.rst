@@ -85,6 +85,9 @@ This enables haversine calculations of this library to be faster than
    >>> %timeit sklearn.metrics.pairwise.haversine_distances(sn/180*np.pi, sn/180*np.pi)*6371
    5.54 s ± 16.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
+These calculations scale well with number of physical threads. The higher the core
+count, the bigger the difference.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
