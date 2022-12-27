@@ -25,10 +25,13 @@ def get(key: str, modifier: Callable[[str], Any], *, default: Any = None) -> Any
         A Callable to transform the found value. Useful for type coersion, since
         environment variables are always stored as :class:`str`.
 
-        A special case here is that if `bool` is passed, the actual modifier used will
-        look for the word `true` or `false` before using ``bool(int(value))``. This is
-        because :class:`bool` itself does not reflect how intuitively :class:`str`
-        translates to :class:`bool`.
+        .. note::
+            If ``modifier`` is ``bool``, special cases apply:
+
+            - Any case-insensitive string value ``"true"`` is considered ``True``.
+            - Any case-insensitive string value ``"false"`` is considered ``False``.
+            - String values containing only ``0-9`` numerics, then the number is
+              converted to :class:`int` before applying :class:`bool`.
 
     default : Any
         The default value if not found, or modifier encountered an :class:`Exception`.
@@ -54,7 +57,10 @@ def get(key: str, modifier: Callable[[str], Any], *, default: Any = None) -> Any
             if value.lower() == "false":
                 return False
 
-            return bool(int(value))
+            if value.isnumeric():
+                return bool(int(value))
+
+            return bool(value)
 
     try:
         return modifier(_value)
@@ -63,4 +69,15 @@ def get(key: str, modifier: Callable[[str], Any], *, default: Any = None) -> Any
 
 
 PYTEST_IS_RUNNING = get("PYTEST_RUNNING", False, default=False)
+"""
+``True`` if pytest is running, otherwise ``False``.
+
+Set Environment Variable ``PYTEST_RUNNING`` to change this value manually.
+"""
+
 SPHINX_IS_BUILDING = get("SPHINX_BUILD", False, default=False)
+"""
+``True`` value if sphinx is building, otherwise ``False``.
+
+Set Environment Variable ``SPHINX_BUILD`` to change this value manually.
+"""

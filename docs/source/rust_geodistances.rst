@@ -22,14 +22,6 @@ rust\_geodistances.lib\_rust\_geodistances module
 -------------------------------------------------
 
 .. automodule:: rust_geodistances.lib_rust_geodistances
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
-rust\_geodistances.lib\_rust\_geodistances module
--------------------------------------------------
-
-.. automodule:: rust_geodistances.lib_rust_geodistances
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. note::
+   Members of this module are private.
