@@ -121,11 +121,17 @@ pub struct CalculationSettings{
     pub eps:f64,
 
     #[pyo3(get, set)]
-    /// Number of CPU threads to use during parallelised operations.
+    /// Maximum length of 1-dimensional arrays that uses serial calculations.
     ///
     /// **Type:** numpy.u64
     ///
-    /// Used in Haversine calculations.
+    /// This is used in all ``*_from_point`` or ``*_of_point`` methods.
+    /// These methods will start parallelising the calculations if the
+    /// dimension of the array input exceeds :attr:`max_serial_1d_array_len`.
+    ///
+    /// This ensures that for small array calculations, we won't waste time on
+    /// starting threads and collecting results, while benefiting large array
+    /// calculations that requires such optimisation.
     pub max_serial_1d_array_len:usize,
 
     #[pyo3(get, set)]
@@ -133,7 +139,12 @@ pub struct CalculationSettings{
     ///
     /// **Type:** numpy.u64
     ///
-    /// Used in Haversine calculations.
+    /// Defaults to the amount of threads reported by the OS. This will include
+    /// efficiency cores as well as virtual threads (e.g. Intel Hyperthreading)
+    /// which are typically slower than their performance/physical
+    /// counterparts. If this is causing performance degradation for you,
+    /// set this number to the number of physical performance cores on your
+    /// system.
     pub workers:usize,
 }
 impl Default for CalculationSettings {
