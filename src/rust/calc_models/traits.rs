@@ -201,11 +201,6 @@ pub trait CalculateDistance {
         e:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2;
-
-    fn distance_within_array(
-        s:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
-    ) -> F64Array2;
 }
 
 /// Generic T here, could be scalar f64 or F64Array.
@@ -257,38 +252,4 @@ pub trait OffsetByVector<T>:CalculateDistance {
         bearing:T,
         settings: Option<&config::CalculationSettings>,
     ) -> F64LatLngArray;
-}
-
-/// Generic T here, could be scalar f64 or F64Array.
-///
-/// .. note::
-///     CheckDistance REQUIRES OffsetByVector.
-///
-/// While this trait allows for T as 1-dimensional arrays, which
-/// ACTUALLY works, but the length of the array needs
-/// to match that of `e`, not `s` intuitively.
-///
-/// There is already the trait of `ArrayWithF64MappedOperators`
-/// to resolve this; but this will require a second `impl` for
-/// `T:F64Array1`, which is not a priority for now.
-pub trait CheckDistance<T>:OffsetByVector<T> {
-    fn within_distance_of_point(
-        s:&dyn LatLng,
-        e:&dyn LatLngArray,
-        distance:T,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray1;
-
-    fn within_distance(
-        s:&dyn LatLngArray,
-        e:&dyn LatLngArray,
-        distance: T,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray2;
-
-    fn within_distance_among_array(
-        s:&dyn LatLngArray,
-        distance: T,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray2;
 }

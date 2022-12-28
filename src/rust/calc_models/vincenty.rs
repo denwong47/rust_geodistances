@@ -31,8 +31,6 @@ use ndarray_numeric::{
     F64LatLngArray,
 
     ArrayWithBoolIterMethods,
-
-    SquareShapedArray,
 };
 
 use super::{
@@ -43,7 +41,6 @@ use super::traits::{
     LatLng,
     LatLngArray,
     CalculateDistance,
-    CheckDistance,
     OffsetByVector
 };
 
@@ -324,69 +321,7 @@ impl CalculateDistance for Vincenty {
         return results;
     }
 
-    fn distance_within_array(
-        s:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
-    ) -> F64Array2 {
-        let s_owned = s.to_owned();
-
-        let workers: usize = settings.unwrap_or(
-            &config::CalculationSettings::default()
-        ).workers;
-
-        return F64Array2::from_mapped_array2_fn(
-            &s_owned.view(),
-            | s, e | {
-                // println!("sn={:?} en={:?}", &s, &e);
-                Self::distance_from_point(&s, &e.to_owned(), settings)
-            },
-            workers,
-            Some(true),
-        );
-    }
 }
-
-
-#[duplicate_item(
-    __vector_type__                 __impl_generics__;
-    [ f64 ]                         [];
-    [ &F64Array1 ]                  [];
-    [ &F64ArcArray1 ]               [];
-    [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
-    [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
-)]
-impl<__impl_generics__> CheckDistance<__vector_type__> for Vincenty {
-    /// .. versionchanged: 0.2.1
-    ///     Not in use anymore; this is now done at enum level.
-    fn within_distance_of_point(
-        s:&dyn LatLng,
-        e:&dyn LatLngArray,
-        distance:__vector_type__,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray1 {
-        return (Self::distance_from_point(s, e, settings,) - distance).le(&0.);
-    }
-
-    /// .. versionchanged: 0.2.1
-    ///     Not in use anymore; this is now done at enum level.
-    fn within_distance(
-        s:&dyn LatLngArray,
-        e:&dyn LatLngArray,
-        distance: __vector_type__,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray2 {
-        return (Self::distance(s, e, settings,) - distance).le(&0.);
-    }
-
-    fn within_distance_among_array(
-        s:&dyn LatLngArray,
-        distance: __vector_type__,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray2 {
-    return (Self::distance_within_array(s, settings) - distance).le(&0.);
-}
-}
-
 
 #[duplicate_item(
     // Arrays

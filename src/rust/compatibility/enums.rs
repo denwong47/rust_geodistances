@@ -25,6 +25,8 @@ use ndarray_numeric::{
     F64ArrayView,
     F64ArrayViewMut,
     F64LatLngArray,
+
+    SquareShapedArray,
 };
 
 use crate::calc_models::traits::{
@@ -32,7 +34,6 @@ use crate::calc_models::traits::{
     LatLngArray,
     CalculateDistance,
     OffsetByVector,
-    CheckDistance,
 };
 
 use crate::calc_models::{
@@ -282,14 +283,26 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         settings: Option<&config::CalculationSettings>,
     ) -> F64Array2 {
-        // TODO This is not the intended implentation; this is meant to only calculate
-        // the lower half of the grid below the diagonal.
         let f = match self {
-            Self::HAVERSINE => Haversine::distance_within_array,
-            Self::VINCENTY => Vincenty::distance_within_array,
+            Self::HAVERSINE => Haversine::distance_from_point,
+            Self::VINCENTY => Vincenty::distance_from_point,
         };
 
-        return f(s, settings);
+        let s_owned = s.to_owned();
+
+        let workers: usize = settings.unwrap_or(
+            &config::CalculationSettings::default()
+        ).workers;
+
+        return F64Array2::from_mapped_array2_fn(
+            &s_owned.view(),
+            | s, e | {
+                // println!("sn={:?} en={:?}", &s, &e);
+                f(&s, &e.to_owned(), settings)
+            },
+            workers,
+            Some(true),
+        );
     }
 
     fn _displace(
@@ -361,12 +374,15 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         distance: f64,
         settings: Option<&config::CalculationSettings>,
     ) -> BoolArray2 {
-        let f  = match self {
-            Self::HAVERSINE => Haversine::within_distance_among_array,
-            Self::VINCENTY => Vincenty::within_distance_among_array,
-        };
+        let distances = CalculationInterfaceInternal
+                                        ::<__vector_type__>
+                                        ::_distance_within_array(
+                                            self,
+                                            s,
+                                            settings,
+                                        );
 
-        return f(s, distance, settings);
+        return (distances - distance).le(&0.);
     }
 
     /// Does this belong here, or in lib.rs?
