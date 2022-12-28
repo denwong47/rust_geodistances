@@ -1,5 +1,7 @@
 # `rust_geodistances` Library
 
+![CI Checks](https://github.com/denwong47/rust_geodistances/actions/workflows/CI.yml/badge.svg?branch=main)
+
 > ## **Documentation**:
 >
 > **Available at [github pages](https://denwong47.github.io/rust_geodistances/).**
