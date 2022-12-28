@@ -857,9 +857,14 @@ stop once this number of iterations had taken place.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="rust_geodistances.CalculationSettings.max_serial_1d_array_len">
 <span class="sig-name descname"><span class="pre">max_serial_1d_array_len</span></span><a class="headerlink" href="#rust_geodistances.CalculationSettings.max_serial_1d_array_len" title="Permalink to this definition">#</a></dt>
-<dd><p>Number of CPU threads to use during parallelised operations.</p>
+<dd><p>Maximum length of 1-dimensional arrays that uses serial calculations.</p>
 <p><strong>Type:</strong> numpy.u64</p>
-<p>Used in Haversine calculations.</p>
+<p>This is used in all <code class="docutils literal notranslate"><span class="pre">*_from_point</span></code> or <code class="docutils literal notranslate"><span class="pre">*_of_point</span></code> methods.
+These methods will start parallelising the calculations if the
+dimension of the array input exceeds <a class="reference internal" href="#rust_geodistances.CalculationSettings.max_serial_1d_array_len" title="rust_geodistances.CalculationSettings.max_serial_1d_array_len"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_serial_1d_array_len</span></code></a>.</p>
+<p>This ensures that for small array calculations, we won’t waste time on
+starting threads and collecting results, while benefiting large array
+calculations that requires such optimisation.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -891,7 +896,12 @@ distance. This does NOT mean that resultant values will be accurate to
 <span class="sig-name descname"><span class="pre">workers</span></span><a class="headerlink" href="#rust_geodistances.CalculationSettings.workers" title="Permalink to this definition">#</a></dt>
 <dd><p>Number of CPU threads to use during parallelised operations.</p>
 <p><strong>Type:</strong> numpy.u64</p>
-<p>Used in Haversine calculations.</p>
+<p>Defaults to the amount of threads reported by the OS. This will include
+efficiency cores as well as virtual threads (e.g. Intel Hyperthreading)
+which are typically slower than their performance/physical
+counterparts. If this is causing performance degradation for you,
+set this number to the number of physical performance cores on your
+system.</p>
 </dd></dl>
 
 </dd></dl>
