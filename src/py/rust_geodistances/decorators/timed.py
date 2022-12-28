@@ -74,8 +74,11 @@ class TimedFunction:
 
         Parameters
         ----------
-        *args, **kwargs
+        args
             Parameters to be passed to the underlying function.
+
+        kwargs
+            Keyworded parameters to be passed to the underlying function.
 
         Returns
         -------
@@ -92,8 +95,11 @@ class TimedFunction:
 
         Parameters
         ----------
-        args, kwargs
+        args
             Parameters to be passed to the underlying function.
+
+        kwargs
+            Keyworded parameters to be passed to the underlying function.
 
         Returns
         -------
@@ -110,8 +116,11 @@ class TimedFunction:
 
         Parameters
         ----------
-        args, kwargs
+        args
             Parameters to be passed to the underlying function.
+
+        kwargs
+            Keyworded parameters to be passed to the underlying function.
 
         number : int
             Number of executions to be run.
