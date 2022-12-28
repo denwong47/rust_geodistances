@@ -300,6 +300,7 @@ pub trait CalculationInterfaceInternal<T> {
     [ &F64ArrayView<'a, Ix1> ]      [ 'a ];
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
+/// *See trait for method descriptions.*
 impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for CalculationMethod {
     fn _distance_from_point(
         &self,
@@ -467,12 +468,6 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
                                         );
 
         return (distances - distance).le(&0.);
-        // let f = match self {
-        //     Self::HAVERSINE => Haversine::within_distance_of_point,
-        //     Self::VINCENTY => Vincenty::within_distance_of_point,
-        // };
-
-        // return f(s, e, distance, settings);
     }
 
     fn _within_distance(
