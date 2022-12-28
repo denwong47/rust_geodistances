@@ -31,7 +31,5 @@ pub use conversions::{
 pub use enums::{
     CalculationInterfaceInternal,
     CalculationMethod,
+    CalculationSettings,    // Re-imported from `calc_models`.
 };
-
-// Public import this to unify things.
-pub use super::calc_models::CalculationSettings;

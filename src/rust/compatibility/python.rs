@@ -7,8 +7,12 @@
 /// PyResult<PyObject>.
 ///
 /// It also carries out any checks for concepts that do not exist in Rust, for instance
-/// identity checks between input arrays `s` and `e`, and choose the correct array
-/// accordingly.
+/// identity checks between input arrays `s` and `e`, and choose the correct `enums`
+/// method accordingly. This is not possible once `numpy::ToPyArray::to_owned_array` is
+/// called and the array become Rust native.
+///
+/// All docstrings in this module are also parsed by PyO3 to become the `__doc__`
+/// of each method; thus they need to be sphinx+numpydoc compliant.
 
 use pyo3::prelude::*;
 use pyo3::types::{

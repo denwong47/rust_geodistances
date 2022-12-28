@@ -3,7 +3,7 @@
 /// This is the main rust file that provides the PyO3 bindings; it declares a
 /// Python module `lib_rust_geodistances`, which contains all Rust interfaces
 /// with Python.
-/// 
+///
 /// This file also needs to declare all the `#[cfg(test)]` as submodules to
 /// allow `cargo test` to pick them up; this is currently done inside the
 /// `tests` submodule.
@@ -53,6 +53,7 @@ mod tests;
 #[pymodule]
 fn lib_rust_geodistances(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<compatibility::enums::CalculationMethod>()?;
+    // Or should we compatibility::enums::CalculationSettings??
     m.add_class::<calc_models::config::CalculationSettings>()?;
 
     Ok(())

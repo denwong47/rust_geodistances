@@ -20,6 +20,8 @@ pub const TOLERANCE:f64 = 1e-12;
 
 pub const DEFAULT_WORKERS:usize = 4;
 
+pub const LONG_1D_ARRAY:usize = 8192;
+
 pub fn workers_count() -> usize {
     return match thread::available_parallelism() {
         Ok(count) => usize::from(count),
@@ -124,6 +126,14 @@ pub struct CalculationSettings{
     /// **Type:** numpy.u64
     ///
     /// Used in Haversine calculations.
+    pub max_serial_1d_array_len:usize,
+
+    #[pyo3(get, set)]
+    /// Number of CPU threads to use during parallelised operations.
+    ///
+    /// **Type:** numpy.u64
+    ///
+    /// Used in Haversine calculations.
     pub workers:usize,
 }
 impl Default for CalculationSettings {
@@ -132,14 +142,15 @@ impl Default for CalculationSettings {
     /// Rust only.
     fn default() -> Self {
         return Self {
-            spherical_radius:   RADIUS,
-            ellipse_a:          ELLIPSE_WGS84_A,
-            ellipse_b:          ELLIPSE_WGS84_B,
-            ellipse_f:          ELLIPSE_WGS84_F,
-            tolerance:          TOLERANCE,
-            max_iterations:     MAX_ITERATIONS,
-            eps:                f64::EPSILON,
-            workers:            workers_count(),
+            spherical_radius:           RADIUS,
+            ellipse_a:                  ELLIPSE_WGS84_A,
+            ellipse_b:                  ELLIPSE_WGS84_B,
+            ellipse_f:                  ELLIPSE_WGS84_F,
+            tolerance:                  TOLERANCE,
+            max_iterations:             MAX_ITERATIONS,
+            eps:                        f64::EPSILON,
+            max_serial_1d_array_len:    LONG_1D_ARRAY,
+            workers:                    workers_count(),
         }
     }
 }
@@ -154,6 +165,7 @@ impl CalculationSettings {
         tolerance:Option<f64>,
         max_iterations:Option<usize>,
         eps:Option<f64>,
+        max_serial_1d_array_len:Option<usize>,
         workers:Option<usize>,
     ) -> Self {
         let default = Self::default();
@@ -169,6 +181,8 @@ impl CalculationSettings {
                                     f64::EPSILON,
                                     eps.unwrap_or(default.eps)
                                 ),
+            max_serial_1d_array_len:
+                                max_serial_1d_array_len.unwrap_or(default.max_serial_1d_array_len),
             workers:            cmp::max(
                                     1,
                                     workers.unwrap_or(default.workers)
@@ -187,6 +201,7 @@ impl CalculationSettings {
         params.push(format!("{}={:?}", "tolerance", self.tolerance));
         params.push(format!("{}={:?}", "max_iterations", self.max_iterations));
         params.push(format!("{}={:?}", "eps", self.eps));
+        params.push(format!("{}={:?}", "max_serial_1d_array_len", self.max_serial_1d_array_len));
         params.push(format!("{}={:?}", "workers", self.workers));
 
         return format!(
@@ -233,6 +248,7 @@ impl CalculationSettings {
         params.push(format!("  - {:20}= {:>22?}", "tolerance", self.tolerance));
         params.push(format!("  - {:20}= {:>22?}", "max_iterations", self.max_iterations));
         params.push(format!("  - {:20}= {:>22?}", "eps", self.eps));
+        params.push(format!("  - {:20}= {:>22?}", "max_serial_1d_array_len", self.max_serial_1d_array_len));
         params.push(format!("  - {:20}= {:>22?}", "workers", self.workers));
 
         return println!(

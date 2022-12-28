@@ -1,9 +1,21 @@
+/// Enum classes.
+///
+/// The main purpose of this module is the enum of `CalculationMethod`.
+/// This Rust `enum`/Python `class` contains a member for each provided
+/// calculation model (see `calc_models`), with each function `match`-ing
+/// the enum member to call the correct element in `calc_models`.
+///
+/// While the Enum itself is decorated with PyO3, all methods in this
+/// module should be Rust-native, taking `ndarray` and returning the same,
+/// so that they can be used directly by Rust as well.
+
 use duplicate::duplicate_item;
 
 use std::cmp;
 use std::sync::{Arc, Mutex};
 
 use ndarray::{
+    Array1,
     Axis,
     Ix1,
     s,
@@ -39,15 +51,63 @@ use crate::calc_models::traits::{
 use crate::calc_models::{
     Haversine,
     Vincenty,
-    config,
 };
 
 use super::conversions::{
     BoolArrayToVecIndex,
 };
 
+// Public import this to unify things.
+// It's a Enum afterall.
+pub use crate::calc_models::CalculationSettings;
+
 #[pyclass(module="rust_geodistances")]
 /// Pseudo-Enum class of all supported calculation models.
+///
+/// This enum contains members that each represents a calculation method
+/// that can:
+///
+/// - calculate distances,
+/// - check adjacency between points, and
+/// - displace points by a vector.
+///
+/// .. versionchanged:: 0.2.0
+///     Since all functions are removed from
+///     :mod:`~rust_geodistances.lib_rust_geodistances` module, this Enum is now the
+///     primary means of accessing the functionalities of the whole library.
+///
+/// .. note::
+///     The members of this class can be accessed via the aliases:
+///
+///     - :attr:`rust_geodistances.haversine`
+///     - :attr:`rust_geodistances.vincenty`
+///
+/// Methods of this class operates solely on `numpy` data types:
+/// n-dimensional arrays and primitives such as `numpy.float64`. This includes
+/// single ``(latitude, longitude)`` pairs as well - instead of :class:`tuple`,
+/// methods expects a 1-dimensional :class:`numpy.ndarray` of shape ``(2)``.
+/// Simply wrap the tuple up with :func:`numpy.array`:
+///
+///     >>> import numpy as np
+///     >>> my_coors = np.array( (-43.362504,   77.926993) )
+///     >>>
+///     >>> from rust_geodistances import haversine
+///     >>> haversine.distance_from_point( my_coors, some_2dim_array )
+///
+/// All 2-dimensional arrays used by these methods should have:
+///
+/// - column 0 being latitudes in degrees, and
+/// - column 1 being longitudes in degrees.
+///
+/// To illustrate this::
+///
+///             [:,0]       [:,1]
+///        (Latitude) (Longitude)
+///    [0] -43.362504   77.926993
+///    [1] -85.044442  123.079125
+///    [2]   4.081147   85.444927
+///               ...         ...
+///    [n]  29.265579  -14.329487
 pub enum CalculationMethod {
     /// Haversine Calculation Model
     ///
@@ -69,92 +129,166 @@ impl Default for CalculationMethod {
     fn default() -> Self { Self::HAVERSINE }
 }
 
+/// Trait for the internal calculation methods.
+///
+/// This does not in fact needs to be a `trait`, as should only be implemented on
+/// a single `struct`; this is simply to provide and option of subtraits intsead of
+/// forcing compositions.
 pub trait CalculationInterfaceInternal<T> {
-    type FnWithinDistance;
-
-    // No Generics on this one.
+    /// Calculate distances from a point.
+    ///
+    /// This is simply a switch between :meth:`_ser_distance_from_point` and
+    /// :meth:`_par_distance_from_point`, depending on the length of `e`.
+    ///
+    /// This split is required because
+    ///
+    /// - :meth:`_distance` internally
+    ///   uses :meth:`_ser_distance_from_point` on chunks to perform the calculations
+    ///   in serial, but
+    /// - :meth:`_distance_from_point` should benefit from parallelisation if array
+    ///   `e` is too long.
+    ///
+    /// Hence :meth:`_distance_from_point` cannot be the same function as
+    /// :meth:`_ser_distance_from_point`.
+    ///
+    /// The threshold to choose serial/parallel execution should be read from
+    /// :attr:`CalculationSettings.max_serial_1d_array_len`.
     fn _distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1;
 
-    // Serial Execution
+    /// Low level Serial Execution to calculate distances from a point.
+    ///
+    /// For internal use in `par_iter` in :meth:`_par_distance_from_point` and
+    /// :meth:`_distance`.
     fn _ser_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1;
 
-    // Parallel Execution
+    /// Low level Parallel Execution to calculate distances from a point.
+    ///
+    /// For internal use in :meth:`_distance_from_point` if the length of `e`
+    /// exceeds :attr:`CalculationSettings.max_serial_1d_array_len`.
     fn _par_distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1;
 
+    /// Pairwise distances between two array of points.
     fn _distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array2;
 
+    /// Pairwise distances among a single array of points.
+    ///
+    /// This function will be called by higher level functions if
+    /// `s` is found to be *identical* to `e` (i.e. the same instance).
+    ///
+    /// Since distance calculations are commutative (i.e. f(a,b) == f(b,a))
+    /// and the two arrays contain the same elements, we can effectively make half of
+    /// the calculations, then mirror the results over. This efficiency gain is most
+    /// pronounced in iterative models such as Vincenty.
     fn _distance_within_array(
         &self,
         s:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array2;
 
+    /// Displace an array by a vector.
+    ///
+    /// Returns an 2-dimensional array of latitude-longitude pairs.
+    ///
+    /// .. note::
+    ///     In a future version, this method will be detached from
+    ///     `CalculationInterfaceInternal` together with
+    ///     :meth:`_within_distance_of_point` to become a separate trait,
+    ///     as the generic ``<T>`` is not used by any other methods.
+    ///
+    ///     Hence, use of this method through the trait is not recommended.
+    ///     Call this method via the struct that implements this trait instead.
     fn _displace(
         &self,
         s:&dyn LatLngArray,
         distance:T,
         bearing:T,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64LatLngArray;
 
+    /// Checks if an array ``e`` of latitude-longitude pairs are within ``distance`` of ``s``.
+    ///
+    /// Returns a 1-dimensional array of `bool`.
     fn _within_distance_of_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance:T,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray1;
 
+    /// Pairwise mapping of two arrays to check if each pair are within ``distance`` of each other.
+    ///
+    /// Returns a 2-dimensional array of `bool`.
     fn _within_distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance:f64,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray2;
 
+    /// Pairwise mapping within a single array to check if each pair are within ``distance`` of each other.
+    ///
+    /// Returns a 2-dimensional array of `bool`.
+    ///
+    /// Since distance calculations are commutative (i.e. f(a,b) == f(b,a))
+    /// and the two arrays contain the same elements, we can effectively make half of
+    /// the calculations, then mirror the results over. This efficiency gain is most
+    /// pronounced in iterative models such as Vincenty.
     fn _within_distance_among_array(
         &self,
         s:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray2;
 
+    /// Indices of points in ``e`` within ``distance`` of ``s``.
+    ///
+    /// Returns a 1-dimensional array of `usizes`. Length is variable depending on the
+    /// results.
     fn _indices_within_distance_of_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
-    ) -> Vec<usize>;
+        settings: Option<&CalculationSettings>,
+    ) -> Array1<usize>;
 
+    /// Indices of points in ``e`` within ``distance`` of each point of ``s``.
+    ///
+    /// Returns a Vector of 1-dimensional arrays of `usizes`.
+    ///
+    /// .. note::
+    ///     Note that the return value is a ``Vec``, not a 2-dimensional array.
+    ///     This is because of each ``Array1<usize>>`` being variable in length,
+    ///     resulting in a jagged array which is not currently supported.
     fn _indices_within_distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
-    ) -> Vec<Vec<usize>>;
+        settings: Option<&CalculationSettings>,
+    ) -> Vec<Array1<usize>>;
 
 }
 
@@ -167,22 +301,19 @@ pub trait CalculationInterfaceInternal<T> {
     [ &F64ArrayViewMut<'a, Ix1> ]   [ 'a ];
 )]
 impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for CalculationMethod {
-    type FnWithinDistance = fn(
-        s:&dyn LatLngArray,
-        e:&dyn LatLngArray,
-        distance:f64,
-        settings: Option<&config::CalculationSettings>,
-    ) -> BoolArray2;
-
     fn _distance_from_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1 {
+        let max_serial_1d_array_len: usize = settings.unwrap_or(
+            &CalculationSettings::default()
+        ).max_serial_1d_array_len;
+
         // Split case if `e` array is short, then don't parallellise.
         let f = {
-            if e.shape()[0] >= 8192 {
+            if e.shape()[0] >= max_serial_1d_array_len {
                 CalculationInterfaceInternal::<__vector_type__>::_par_distance_from_point
             } else {
                 CalculationInterfaceInternal::<__vector_type__>::_ser_distance_from_point
@@ -200,7 +331,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance_from_point,
@@ -214,11 +345,11 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array1 {
         let shape = e.shape()[0];
         let workers: usize = settings.unwrap_or(
-            &config::CalculationSettings::default()
+            &CalculationSettings::default()
         ).workers;
         let chunk_size: usize = (shape as f32 / workers as f32).ceil() as usize;
 
@@ -261,7 +392,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array2 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance,
@@ -281,7 +412,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
     fn _distance_within_array(
         &self,
         s:&dyn LatLngArray,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64Array2 {
         let f = match self {
             Self::HAVERSINE => Haversine::distance_from_point,
@@ -291,7 +422,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         let s_owned = s.to_owned();
 
         let workers: usize = settings.unwrap_or(
-            &config::CalculationSettings::default()
+            &CalculationSettings::default()
         ).workers;
 
         return F64Array2::from_mapped_array2_fn(
@@ -310,7 +441,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         distance:__vector_type__,
         bearing:__vector_type__,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> F64LatLngArray {
         let f = match self {
             Self::HAVERSINE => Haversine::displace,
@@ -325,7 +456,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance: __vector_type__,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray1 {
         let distances = CalculationInterfaceInternal
                                         ::<__vector_type__>
@@ -349,7 +480,7 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64, // Restrict to f64 here
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray2 {
         let distances = CalculationInterfaceInternal
                                         ::<__vector_type__>
@@ -360,19 +491,13 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
                                         );
 
         return (distances - distance).le(&0.);
-        // let f: Self::FnWithinDistance  = match self {
-        //     Self::HAVERSINE => Haversine::within_distance,
-        //     Self::VINCENTY => Vincenty::within_distance,
-        // };
-
-        // return f(s, e, distance, settings);
     }
 
     fn _within_distance_among_array(
         &self,
         s:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
+        settings: Option<&CalculationSettings>,
     ) -> BoolArray2 {
         let distances = CalculationInterfaceInternal
                                         ::<__vector_type__>
@@ -385,14 +510,13 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
         return (distances - distance).le(&0.);
     }
 
-    /// Does this belong here, or in lib.rs?
     fn _indices_within_distance(
         &self,
         s:&dyn LatLngArray,
         e:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
-    ) -> Vec<Vec<usize>> {
+        settings: Option<&CalculationSettings>,
+    ) -> Vec<Array1<usize>> {
         return CalculationInterfaceInternal
                ::<__vector_type__>
                ::_within_distance(
@@ -400,24 +524,29 @@ impl<__impl_generics__> CalculationInterfaceInternal<__vector_type__> for Calcul
                     s, e,
                     distance,
                     settings,
-                ).to_vec_of_indices();
+                )
+                .axis_iter(Axis(0))
+                .map(
+                    | row| {
+                        row.indices()
+                    }
+                )
+                .collect();
     }
 
-    /// Does this belong here, or in lib.rs?
     fn _indices_within_distance_of_point(
         &self,
         s:&dyn LatLng,
         e:&dyn LatLngArray,
         distance: f64,
-        settings: Option<&config::CalculationSettings>,
-    ) -> Vec<usize> {
+        settings: Option<&CalculationSettings>,
+    ) -> Array1<usize> {
         return self._within_distance_of_point(
             s, e,
             distance,
             settings,
         )
-        .indices()
-        .to_vec();
+        .indices();
     }
 
 }
