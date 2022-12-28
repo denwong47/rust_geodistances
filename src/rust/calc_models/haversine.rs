@@ -22,12 +22,8 @@ use super::traits::{
 use ndarray_numeric::{
     ArrayWithF64Methods,
     ArrayWithF64Atan2Methods,
-    ArrayWithF64PartialOrd,
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
-
-    BoolArray1,
-    BoolArray2,
 
     F64Array1,
     F64Array2,

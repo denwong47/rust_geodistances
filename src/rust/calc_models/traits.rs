@@ -18,8 +18,7 @@ use ndarray::{
 use ndarray_numeric::{
     ArrayWithF64AngularMethods,
     ArrayWithF64LatLngMethods,
-    BoolArray1,
-    BoolArray2,
+
     F64Array1,
     F64Array2,
     F64ArrayView,

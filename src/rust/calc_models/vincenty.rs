@@ -19,7 +19,6 @@ use ndarray_numeric::{
     ArrayWithF64LatLngMethods,
 
     BoolArray1,
-    BoolArray2,
 
     F64Array,
     F64Array1,
