@@ -1,4 +1,7 @@
-/// Compatibility
+/// Simplified type conversions unique to this package.
+///
+/// These are type conversions that do not belong to :mod:`ndarray_numeric` but
+/// still integral to :mod:`rust_geodistances`.
 
 use duplicate::duplicate_item;
 use ndarray::{
@@ -52,6 +55,10 @@ pub trait BoolArrayToVecIndex {
 
 /// Allows two-dimensional `bool` arrays to convert into a `Vec` of `Vec<usize>`s.
 /// This reduces the `into_py` conversion cost somewhat, but is still a `Vec` of `Vec`.
+///
+/// .. deprecated:: 0.2.2
+///     This function is no longer required as indices functions now returns
+///     Arrays instead of `Vec<Vec<usize>>`
 #[duplicate_item(
     __array2_type__                 __impl_generics__;
     [ BoolArray2 ]                  [ ];

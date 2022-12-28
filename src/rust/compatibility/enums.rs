@@ -53,9 +53,9 @@ use crate::calc_models::{
     Vincenty,
 };
 
-use super::conversions::{
-    BoolArrayToVecIndex,
-};
+// use super::conversions::{
+//     BoolArrayToVecIndex,
+// };
 
 // Public import this to unify things.
 // It's a Enum afterall.

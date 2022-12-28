@@ -92,7 +92,23 @@ count, the bigger the difference.
    :maxdepth: 2
    :caption: Contents:
 
-   rust_geodistances
+   modules
+
+
+Folder Structure
+================
+
+The source code of this library is laid out as follows:
+
+   - ```docs``` - Sphinx documentation folder.
+      - ```docs/build``` - Compiled documentation location. This is used by github action.
+      - ```docs/source``` - Source reStructuredText files.
+   - ```experiments/``` - Not officially part of the package; scripts that assists development.
+   - ```src/```
+      - ```src/py``` - Python package find path. Each subdirectory will become a python package.
+         - ```src/py/rust_geodistances``` - package directory for ```rust_geodistances```.
+      - ```src/rust``` - Rust source code. ```lib.rs``` is situated here.
+   - ```tests/``` - Pytest directory.
 
 Indices and tables
 ==================
