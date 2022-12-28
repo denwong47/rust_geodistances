@@ -1,3 +1,5 @@
+/// Compatibility
+
 use duplicate::duplicate_item;
 use ndarray::{
     ArcArray2,
