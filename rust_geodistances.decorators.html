@@ -116,8 +116,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="rust_geodistances.html">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -203,8 +203,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="rust_geodistances.html">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -255,8 +255,11 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">rust_geodistances.decorators package</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">rust_geodistances.decorators package</a></li>
+</ul>
+</li>
 </ul>
 
   </div>
@@ -361,8 +364,8 @@ the duration of execution as well as its results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>*args</strong> – Parameters to be passed to the underlying function.</p></li>
-<li><p><strong>**kwargs</strong> – Parameters to be passed to the underlying function.</p></li>
+<li><p><strong>args</strong> – Parameters to be passed to the underlying function.</p></li>
+<li><p><strong>kwargs</strong> – Keyworded parameters to be passed to the underlying function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -380,7 +383,9 @@ the duration of execution as well as its results.</p>
 <dd><p>Call the underlying function with <code class="docutils literal notranslate"><span class="pre">lru_cache</span></code>.</p>
 <blockquote>
 <div><dl class="simple">
-<dt>args, kwargs</dt><dd><p>Parameters to be passed to the underlying function.</p>
+<dt>args</dt><dd><p>Parameters to be passed to the underlying function.</p>
+</dd>
+<dt>kwargs</dt><dd><p>Keyworded parameters to be passed to the underlying function.</p>
 </dd>
 </dl>
 <dl class="simple">
@@ -398,7 +403,7 @@ the duration of execution as well as its results.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>args</strong> – Parameters to be passed to the underlying function.</p></li>
-<li><p><strong>kwargs</strong> – Parameters to be passed to the underlying function.</p></li>
+<li><p><strong>kwargs</strong> – Keyworded parameters to be passed to the underlying function.</p></li>
 <li><p><strong>number</strong> (<em>int</em>) – Number of executions to be run.</p></li>
 </ul>
 </dd>

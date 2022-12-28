@@ -43,7 +43,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="rust_geodistances.config package" href="rust_geodistances.config.html" />
-    <link rel="prev" title="rust_geodistances library" href="index.html" />
+    <link rel="prev" title="rust_geodistances" href="modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -117,8 +117,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -204,8 +204,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -255,9 +255,12 @@
     Section Navigation
   </p>
   <div class="bd-toc-item navbar-nav">
-    <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.decorators.html">rust_geodistances.decorators package</a></li>
+    <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">rust_geodistances package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.config.html">rust_geodistances.config package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.decorators.html">rust_geodistances.decorators package</a></li>
+</ul>
+</li>
 </ul>
 
   </div>
@@ -305,6 +308,53 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rust_geodistances.</span></span><span class="sig-name descname"><span class="pre">CalculationMethod</span></span><a class="headerlink" href="#rust_geodistances.CalculationMethod" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Pseudo-Enum class of all supported calculation models.</p>
+<p>This enum contains members that each represents a calculation method
+that can:</p>
+<ul class="simple">
+<li><p>calculate distances,</p></li>
+<li><p>check adjacency between points, and</p></li>
+<li><p>displace points by a vector.</p></li>
+</ul>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 0.2.0: </span>Since all functions are removed from
+<a class="reference internal" href="#module-rust_geodistances.lib_rust_geodistances" title="rust_geodistances.lib_rust_geodistances"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lib_rust_geodistances</span></code></a> module, this Enum is now the
+primary means of accessing the functionalities of the whole library.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The members of this class can be accessed via the aliases:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#rust_geodistances.haversine" title="rust_geodistances.haversine"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rust_geodistances.haversine</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rust_geodistances.vincenty" title="rust_geodistances.vincenty"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rust_geodistances.vincenty</span></code></a></p></li>
+</ul>
+</div>
+<p>Methods of this class operates solely on <cite>numpy</cite> data types:
+n-dimensional arrays and primitives such as <cite>numpy.float64</cite>. This includes
+single <code class="docutils literal notranslate"><span class="pre">(latitude,</span> <span class="pre">longitude)</span></code> pairs as well - instead of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>,
+methods expects a 1-dimensional <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> of shape <code class="docutils literal notranslate"><span class="pre">(2)</span></code>.
+Simply wrap the tuple up with <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.array()</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_coors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">(</span><span class="o">-</span><span class="mf">43.362504</span><span class="p">,</span>   <span class="mf">77.926993</span><span class="p">)</span> <span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rust_geodistances</span> <span class="kn">import</span> <span class="n">haversine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">haversine</span><span class="o">.</span><span class="n">distance_from_point</span><span class="p">(</span> <span class="n">my_coors</span><span class="p">,</span> <span class="n">some_2dim_array</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>All 2-dimensional arrays used by these methods should have:</p>
+<ul class="simple">
+<li><p>column 0 being latitudes in degrees, and</p></li>
+<li><p>column 1 being longitudes in degrees.</p></li>
+</ul>
+<p>To illustrate this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>         <span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>       <span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">Latitude</span><span class="p">)</span> <span class="p">(</span><span class="n">Longitude</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span><span class="mf">43.362504</span>   <span class="mf">77.926993</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span><span class="mf">85.044442</span>  <span class="mf">123.079125</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="mf">4.081147</span>   <span class="mf">85.444927</span>
+           <span class="o">...</span>         <span class="o">...</span>
+<span class="p">[</span><span class="n">n</span><span class="p">]</span>  <span class="mf">29.265579</span>  <span class="o">-</span><span class="mf">14.329487</span>
+</pre></div>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="rust_geodistances.CalculationMethod.HAVERSINE">
 <span class="sig-name descname"><span class="pre">HAVERSINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">CalculationMethod.HAVERSINE</span></em><a class="headerlink" href="#rust_geodistances.CalculationMethod.HAVERSINE" title="Permalink to this definition">#</a></dt>
@@ -805,6 +855,14 @@ stop once this number of iterations had taken place.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="rust_geodistances.CalculationSettings.max_serial_1d_array_len">
+<span class="sig-name descname"><span class="pre">max_serial_1d_array_len</span></span><a class="headerlink" href="#rust_geodistances.CalculationSettings.max_serial_1d_array_len" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of CPU threads to use during parallelised operations.</p>
+<p><strong>Type:</strong> numpy.u64</p>
+<p>Used in Haversine calculations.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="rust_geodistances.CalculationSettings.spherical_radius">
 <span class="sig-name descname"><span class="pre">spherical_radius</span></span><a class="headerlink" href="#rust_geodistances.CalculationSettings.spherical_radius" title="Permalink to this definition">#</a></dt>
 <dd><p>Radius of the earth, assuming it is a sphere.</p>
@@ -945,11 +1003,11 @@ required.</p>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="modules.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title"><cite>rust_geodistances</cite> library</p>
+          <p class="prev-next-title">rust_geodistances</p>
       </div>
   </a>
   <a class='right-next' id="next-link" href="rust_geodistances.config.html" title="next page">
@@ -1131,6 +1189,15 @@ required.</p>
      <code class="docutils literal notranslate">
       <span class="pre">
        CalculationSettings.max_iterations
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rust_geodistances.CalculationSettings.max_serial_1d_array_len">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CalculationSettings.max_serial_1d_array_len
       </span>
      </code>
     </a>

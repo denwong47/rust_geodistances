@@ -42,7 +42,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="rust_geodistances package" href="rust_geodistances.html" />
+    <link rel="next" title="rust_geodistances" href="modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -116,8 +116,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="rust_geodistances.html">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -203,8 +203,8 @@
     <ul id="navbar-main-elements" class="navbar-nav">
         
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="rust_geodistances.html">
-                        rust_geodistances package
+                      <a class="nav-link nav-internal" href="modules.html">
+                        rust_geodistances
                       </a>
                     </li>
                 
@@ -354,20 +354,44 @@ count, the bigger the difference.</p>
 <div class="toctree-wrapper compound">
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust-geodistances">rust_geodistances</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.CalculationMethod"><code class="docutils literal notranslate"><span class="pre">CalculationMethod</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.CalculationSettings"><code class="docutils literal notranslate"><span class="pre">CalculationSettings</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.bin"><code class="docutils literal notranslate"><span class="pre">bin</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.haversine"><code class="docutils literal notranslate"><span class="pre">haversine</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#rust_geodistances.vincenty"><code class="docutils literal notranslate"><span class="pre">vincenty</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#subpackages">Subpackages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html#module-rust_geodistances.lib_rust_geodistances">rust_geodistances.lib_rust_geodistances module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">rust_geodistances</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rust_geodistances.html">rust_geodistances package</a></li>
 </ul>
 </li>
 </ul>
 </div>
+</section>
+<section id="folder-structure">
+<h1>Folder Structure<a class="headerlink" href="#folder-structure" title="Permalink to this heading">#</a></h1>
+<p>The source code of this library is laid out as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">`docs`</span></code> - Sphinx documentation folder.</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">`docs/build`</span></code> - Compiled documentation location. This is used by github action.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">`docs/source`</span></code> - Source reStructuredText files.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">`experiments/`</span></code> - Not officially part of the package; scripts that assists development.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">`src/`</span></code></dt><dd><ul>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">`src/py`</span></code> - Python package find path. Each subdirectory will become a python package.</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">`src/py/rust_geodistances`</span></code> - package directory for <code class="docutils literal notranslate"><span class="pre">`rust_geodistances`</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">`src/rust`</span></code> - Rust source code. <code class="docutils literal notranslate"><span class="pre">`lib.rs`</span></code> is situated here.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">`tests/`</span></code> - Pytest directory.</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">#</a></h1>
@@ -386,10 +410,10 @@ count, the bigger the difference.</p>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='right-next' id="next-link" href="rust_geodistances.html" title="next page">
+  <a class='right-next' id="next-link" href="modules.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">rust_geodistances package</p>
+      <p class="prev-next-title">rust_geodistances</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -415,6 +439,11 @@ count, the bigger the difference.</p>
     rust_geodistances
    </cite>
    library
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#folder-structure">
+   Folder Structure
   </a>
  </li>
  <li class="toc-h1 nav-item toc-entry">
